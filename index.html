@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="build-ts" content="2026-04-23T12:58:03Z" />
   <title>App Market Competitor Research</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -928,7 +929,10 @@
 
 <!-- SIDEBAR -->
 <nav>
-  <div class="logo">Competitor Intel</div>
+  <div class="logo" style="display:flex;align-items:center;justify-content:space-between">
+    Competitor Intel
+    <span id="deploy-badge" style="display:none;color:#fff;font-size:10px;font-weight:600;border-radius:4px;padding:2px 6px;letter-spacing:0.02em"></span>
+  </div>
 
   <div class="nav-section">
     <div class="section-label collapsible" onclick="toggleSection('sec-overview',this)">
@@ -1377,7 +1381,7 @@
 ${(c.features || []).length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px">${(c.features).map(f => `<span style="font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 7px;color:var(--muted)">${escHtml(f)}</span>`).join('')}</div>` : ''}
         <div class="card-meta">
           ${c.apps ? `<span style="color:var(--muted)">${escHtml(c.apps)} apps</span>` : ''}
-          <span class="ts">edited ${fmtDate(c.updatedAt || c.createdAt)}</span>
+          <span class="ts">Edited ${fmtDate(c.updatedAt || c.createdAt)}</span>
         </div>
       </div>`;
   }
@@ -1640,7 +1644,8 @@ ${(c.features || []).length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;m
   function addOpportunity() {
     const opps = getOpportunities();
     const id = 'o' + Date.now();
-    opps.push({ id, level: 'medium', title: 'New opportunity', body: '' });
+    const addedBy = localStorage.getItem('cr-user-name') || '';
+    opps.push({ id, level: 'medium', title: 'New opportunity', body: '', addedBy });
     saveOpportunities(opps);
     renderOpportunities();
     // focus the title of the new card
@@ -1889,7 +1894,7 @@ ${(c.features || []).length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;m
                 onblur="saveDetailField('${id}','name',this.innerText.trim())"
                 onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
               >${escHtml(c.name)}</h1>
-              ${c.updatedAt ? `<span style="font-size:11px;color:var(--muted);font-weight:400">edited ${fmtDate(c.updatedAt)}</span>` : ''}
+              ${c.updatedAt ? `<span style="font-size:11px;color:var(--muted);font-weight:400">Edited ${fmtDate(c.updatedAt)}</span>` : ''}
               <select class="badge-select ${c.strength}" id="strength-sel-${id}"
                 onchange="saveDetailField('${id}','strength',this.value);this.className='badge-select '+this.value">
                 <option value="strong"${c.strength==='strong'?' selected':''}>strong</option>
@@ -3885,6 +3890,26 @@ GAPS TO CLOSE:
   renderTopicsNav();
   restoreCollapsed();
   renderCompetitors();
+  // Check if GitHub Pages is behind latest commit
+  (async () => {
+    try {
+      const deployTs = new Date(document.querySelector('meta[name="build-ts"]')?.content || 0);
+      const res = await fetch('https://api.github.com/repos/avigailb/app-market-competitor-research/commits/master');
+      if (!res.ok) return;
+      const data = await res.json();
+      const commitTs = new Date(data.commit?.author?.date || 0);
+      const badge = document.getElementById('deploy-badge');
+      if (!badge) return;
+      badge.style.display = 'inline-block';
+      if (commitTs > deployTs) {
+        badge.textContent = 'not updated';
+        badge.style.background = '#e03e3e';
+      } else {
+        badge.textContent = 'updated';
+        badge.style.background = '#0f7b6c';
+      }
+    } catch {}
+  })();
 </script>
 </body>
 </html>
