@@ -1,0 +1,3812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App Market Competitor Research</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --sidebar: #f7f6f3;
+      --surface: #ffffff;
+      --surface2: rgba(55,53,47,0.05);
+      --border: rgba(55,53,47,0.12);
+      --border2: rgba(55,53,47,0.18);
+      --accent: #37352f;
+      --accent-blue: #2383e2;
+      --accent2: #0f7b6c;
+      --accent3: #e03e3e;
+      --text: #37352f;
+      --muted: rgba(55,53,47,0.5);
+      --hover: rgba(55,53,47,0.06);
+      --hover2: rgba(55,53,47,0.08);
+      --tag-color: #9065b0;
+    }
+
+    body {
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* SIDEBAR */
+    nav {
+      width: 240px;
+      min-width: 240px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 8px 0 24px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .logo {
+      padding: 12px 14px 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    nav a {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 14px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 14px;
+      border-radius: 4px;
+      margin: 1px 6px;
+      transition: background 0.1s;
+      min-height: 28px;
+    }
+
+    nav a:hover { background: var(--hover2); }
+    nav a.active { background: var(--hover2); font-weight: 500; }
+
+    nav .section-label {
+      padding: 20px 14px 4px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      margin: 0 6px;
+    }
+
+    nav .section-label.collapsible {
+      cursor: pointer;
+      user-select: none;
+      justify-content: space-between;
+      padding-right: 6px;
+      border-radius: 4px;
+    }
+
+    nav .section-label.collapsible:hover { color: var(--text); background: var(--hover); }
+
+    .chevron {
+      font-size: 10px;
+      transition: transform 0.2s;
+      opacity: 0.5;
+    }
+
+    .section-label.collapsed .chevron { transform: rotate(-90deg); }
+
+    .nav-group {
+      overflow: hidden;
+      max-height: 600px;
+      transition: max-height 0.25s ease, opacity 0.2s;
+      opacity: 1;
+    }
+
+    .nav-group.collapsed { max-height: 0; opacity: 0; }
+
+    /* MAIN */
+    main {
+      flex: 1;
+      padding: 36px 48px;
+      overflow-y: auto;
+    }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    h1 { font-size: 30px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.01em; }
+    h2 { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+    h3 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+
+    .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+
+    /* STATS ROW */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      margin-bottom: 40px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--border);
+    }
+
+    .stat {
+      background: var(--surface);
+      padding: 20px 24px;
+    }
+
+    .stat .value {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .stat .label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* CARDS */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      transition: box-shadow 0.15s, background 0.1s;
+      cursor: pointer;
+    }
+
+    .card:hover { background: var(--surface2); box-shadow: rgba(15,15,15,0.04) 0 0 0 1px, rgba(15,15,15,0.06) 0 3px 8px; }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .card-name { font-size: 15px; font-weight: 600; }
+
+    .tags { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+
+    .tag {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 3px;
+    }
+
+
+    .card-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .rating { color: #fbbf24; }
+
+    /* STATUS BADGES */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 3px;
+    }
+
+    .badge.strong { background: rgba(15,123,108,0.14); color: var(--accent2); }
+    .badge.weak { background: rgba(224,62,62,0.14); color: var(--accent3); }
+    .badge.moderate { background: rgba(217,115,13,0.14); color: #d9730d; }
+
+    /* TABLE */
+    .table-wrap { overflow-x: auto; margin-bottom: 32px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+
+    th {
+      padding: 8px 12px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--hover); }
+
+    .check { color: var(--accent2); }
+    .cross { color: var(--accent3); }
+    .partial { color: #d9730d; }
+    .paid { color: var(--accent-blue); font-size: 13px; }
+
+    /* MATRIX EDITABLE CELLS */
+    .mx-cell {
+      cursor: pointer; user-select: none; text-align: center;
+      border-radius: 4px; padding: 3px 4px; transition: background 0.1s;
+    }
+    .mx-cell:hover { background: var(--hover2); }
+    .mx-cell.v { color: var(--accent2); font-weight: 600; }
+    .mx-cell.x { color: var(--accent3); font-weight: 600; }
+    .mx-cell.text { color: var(--text); font-size: 12px; text-align: left; }
+    .mx-cell-input {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: 4px; color: var(--text); font-family: inherit; font-size: 12px;
+      padding: 3px 6px; outline: none; min-width: 80px;
+    }
+    .mx-row-del {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      opacity: 0; font-size: 13px; padding: 0 4px;
+    }
+    tr:hover .mx-row-del { opacity: 0.6; }
+    .mx-row-del:hover { color: var(--accent3); opacity: 1 !important; }
+    .mx-add-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+    .mx-add-row input {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-family: inherit; font-size: 13px;
+      padding: 7px 10px; outline: none;
+    }
+    .mx-add-row input:focus { border-color: var(--border2); }
+
+    /* OPPORTUNITIES */
+    #opportunities-list {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;
+    }
+    .opportunity {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      position: relative;
+    }
+
+    .opportunity.high { border-top: 3px solid var(--accent2); }
+    .opportunity.medium { border-top: 3px solid #d9730d; }
+    .opportunity.low { border-top: 3px solid var(--muted); }
+
+    .opportunity h3 { font-size: 14px; margin-bottom: 4px; }
+    .opportunity p { font-size: 13px; color: var(--muted); }
+    .opp-card { display:flex; flex-direction:column; gap:6px; }
+    .opp-drag-handle { cursor:grab; color:var(--muted); font-size:14px; user-select:none; opacity:0.4; display:inline-block; }
+    .opp-drag-handle:hover { opacity:0.8; }
+    .opp-drag-handle:active { cursor:grabbing; }
+    .opportunity.drag-over-opp { opacity:0.4; }
+    .opp-title { font-size:14px; font-weight:600; outline:none; min-height:1.2em; word-break:break-word; }
+    .opp-body { font-size:13px; color:var(--muted); outline:none; min-height:1em; margin-top:2px; white-space:pre-wrap; word-break:break-word; line-height:1.6; }
+    .opp-title:focus, .opp-body:focus { background:var(--hover); border-radius:3px; padding:1px 4px; margin:0 -4px; }
+    .opp-level-select { font-size:11px; font-weight:500; border:none; background:transparent; cursor:pointer; outline:none; font-family:inherit; padding:2px 6px; border-radius:3px; }
+    .opp-level-select.high { background:rgba(15,123,108,0.14); color:var(--accent2); }
+    .opp-level-select.medium { background:rgba(217,115,13,0.14); color:#d9730d; }
+    .opp-level-select.low { background:var(--hover2); color:var(--muted); }
+    .opp-delete {
+      position:absolute; top:8px; right:8px;
+      background:rgba(15,15,15,0.5); color:#fff; border:none; border-radius:50%;
+      width:22px; height:22px; font-size:12px; cursor:pointer;
+      display:none; align-items:center; justify-content:center; padding:0;
+    }
+    .opportunity:hover .opp-delete { display:flex; }
+
+    /* WHAT'S MISSING */
+    .missing-item {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 36px 12px 14px;
+      margin-bottom: 8px;
+    }
+    .missing-item-text {
+      font-size: 14px; line-height: 1.5; color: var(--text);
+      outline: none; min-height: 1.5em;
+    }
+    .missing-item-text:empty::before { content: "Describe what\2019s missing\2026"; color: var(--muted); pointer-events: none; }
+    .missing-item-meta { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .missing-item-del {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(15,15,15,0.5); color: #fff; border: none; border-radius: 50%;
+      width: 22px; height: 22px; font-size: 12px; cursor: pointer;
+      display: none; align-items: center; justify-content: center; padding: 0;
+    }
+    .missing-item:hover .missing-item-del { display: flex; }
+
+    /* EMPTY STATE */
+    .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .empty .icon { font-size: 36px; margin-bottom: 10px; opacity: 0.5; }
+    .empty p { font-size: 14px; }
+
+    /* OVERLAYS & MODALS */
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(15,15,15,0.6); z-index: 100;
+      align-items: center; justify-content: center;
+    }
+    .overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border-radius: 8px;
+      box-shadow: rgba(15,15,15,0.1) 0 0 0 1px, rgba(15,15,15,0.2) 0 8px 40px;
+      padding: 32px;
+      max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; position: relative;
+    }
+
+    .modal-close {
+      position: absolute; top: 16px; right: 20px;
+      background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer;
+    }
+    .modal-close:hover { color: var(--text); }
+
+    .detail-section { margin-bottom: 24px; }
+
+    .detail-row {
+      display: flex; justify-content: space-between;
+      padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+    }
+    .detail-row .key { color: var(--muted); }
+
+    ul.features { list-style: none; }
+    ul.features li { padding: 4px 0; font-size: 13px; color: var(--muted); }
+    ul.features li::before { content: "→ "; color: var(--accent-blue); }
+
+    /* NOTES PAGE */
+    .note-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+
+    .note-card textarea {
+      width: 100%; background: transparent; border: none;
+      color: var(--text); font-family: inherit; font-size: 14px;
+      padding: 8px 0; line-height: 1.7; resize: vertical; min-height: 120px; margin-top: 8px;
+    }
+
+    .note-card textarea:focus { outline: none; }
+
+    /* SEARCH */
+    .search-bar { display: flex; gap: 8px; margin-bottom: 24px; align-items: center; }
+
+    .search-bar input {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-size: 14px; padding: 8px 12px;
+      font-family: inherit;
+    }
+    .search-bar input:focus { outline: none; border-color: var(--border2); box-shadow: 0 0 0 2px rgba(35,131,226,0.2); }
+
+    .filter-btn {
+      padding: 7px 12px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: background 0.1s; font-family: inherit;
+    }
+    .filter-btn:hover, .filter-btn.active { background: var(--hover2); color: var(--text); border-color: var(--border2); }
+
+    /* BUTTONS */
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent); color: #fff; border: none; border-radius: 6px;
+      padding: 8px 14px; font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: opacity 0.15s; margin-bottom: 20px; font-family: inherit;
+    }
+    .btn-primary:hover { opacity: 0.85; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--hover2); color: var(--text); border: 1px solid var(--border);
+      border-radius: 6px; padding: 6px 12px; font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: background 0.1s; font-family: inherit;
+    }
+    .btn:hover { background: rgba(55,53,47,0.14); }
+
+    /* FORM */
+    .form-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(15,15,15,0.6); z-index: 100;
+      align-items: center; justify-content: center;
+    }
+    .form-overlay.open { display: flex; }
+
+    .form-modal {
+      background: var(--surface);
+      border-radius: 8px;
+      box-shadow: rgba(15,15,15,0.1) 0 0 0 1px, rgba(15,15,15,0.2) 0 8px 40px;
+      padding: 28px 32px;
+      max-width: 560px; width: 90%; max-height: 85vh; overflow-y: auto; position: relative;
+    }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block; font-size: 12px; font-weight: 600; color: var(--muted);
+      margin-bottom: 5px; letter-spacing: 0.04em; text-transform: uppercase;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); font-family: inherit; font-size: 14px; padding: 8px 10px;
+    }
+
+    .form-group textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none; border-color: var(--border2);
+      box-shadow: 0 0 0 2px rgba(35,131,226,0.18);
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .checkbox-group { display: flex; flex-direction: column; gap: 6px; }
+    .checkbox-group label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--text); text-transform: none; letter-spacing: 0;
+      font-weight: 400; cursor: pointer;
+    }
+    .checkbox-group input[type=checkbox] { accent-color: var(--accent-blue); width: 14px; height: 14px; }
+
+    .form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+    .btn-secondary {
+      padding: 7px 14px; border-radius: 6px; border: 1px solid var(--border);
+      background: transparent; color: var(--muted); font-size: 13px; font-weight: 500;
+      cursor: pointer; font-family: inherit;
+    }
+    .btn-secondary:hover { color: var(--text); background: var(--hover); }
+
+    select option { background: var(--surface); color: var(--text); }
+
+    /* COMPETITOR DETAIL STICKY BAR */
+    #detail-sticky-bar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+      margin: -36px -48px 16px;
+      padding-left: 48px;
+      padding-right: 48px;
+    }
+    #detail-sticky-bar.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* COMPETITOR DETAIL PAGE */
+    .detail-hero {
+      padding: 0 0 24px; margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .detail-hero-top {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 16px; margin-bottom: 12px;
+      position: sticky; top: 0; z-index: 10;
+      background: var(--bg); padding: 10px 0 8px;
+      margin-left: -4px; margin-right: -4px; padding-left: 4px; padding-right: 4px;
+    }
+
+    .detail-hero h1 { margin-bottom: 2px; }
+    .detail-hero .sub { font-size: 13px; color: var(--muted); }
+    .detail-hero-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    .detail-meta-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0; border: 1px solid var(--border); border-radius: 6px;
+      overflow: hidden; margin-top: 16px; background: var(--border);
+    }
+
+    .detail-meta-item {
+      padding: 12px 16px; background: var(--surface);
+      border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .detail-meta-item:last-child { border-right: none; }
+    .detail-meta-item .key { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+    .detail-meta-item .val { font-size: 13px; color: var(--text); }
+
+    .detail-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+
+    .detail-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 16px 20px;
+    }
+
+    .detail-box h3 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 10px; }
+
+    /* INFO BOXES */
+    .info-boxes-section { margin-bottom: 20px; }
+    .info-boxes-section > .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .info-boxes-section > .section-header h3 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0; }
+    .info-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 16px 20px; margin-bottom: 10px;
+      position: relative;
+    }
+    .info-box-del {
+      position: absolute; top: 6px; right: 6px;
+      background: rgba(15,15,15,0.5); color: #fff; border: none; border-radius: 50%;
+      width: 22px; height: 22px; font-size: 12px; cursor: pointer;
+      display: none; align-items: center; justify-content: center; padding: 0; z-index: 2;
+    }
+    .info-box:hover .info-box-del { display: flex; }
+    .info-box-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+    .info-box-title {
+      font-size: 14px; font-weight: 600; color: var(--text); outline: none; flex: 1; min-width: 0;
+    }
+    .info-box-title:empty:before { content: attr(data-placeholder); color: var(--muted); pointer-events: none; }
+    .info-box-desc {
+      font-size: 13px; color: var(--muted); line-height: 1.6; outline: none; min-height: 20px; margin-bottom: 10px;
+    }
+    .info-box-desc:empty:before { content: attr(data-placeholder); color: var(--muted); pointer-events: none; }
+    .info-box-images { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .info-box-img-wrap { position: relative; width: 80px; height: 60px; flex-shrink: 0; }
+    .info-box-img-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); cursor: pointer; }
+    .info-box-img-del {
+      position: absolute; top: -5px; right: -5px;
+      background: var(--accent3); color: #fff; border: none; border-radius: 50%;
+      width: 16px; height: 16px; font-size: 9px; cursor: pointer; line-height: 1;
+      display: flex; align-items: center; justify-content: center; padding: 0;
+    }
+    .info-box-upload {
+      font-size: 11px; color: var(--muted); cursor: pointer;
+      border: 1px dashed var(--border2); border-radius: 4px; padding: 4px 8px;
+      display: inline-block; margin-top: 2px; user-select: none;
+    }
+    .info-box-upload:hover { background: var(--hover); }
+
+    .feature-pill {
+      display: inline-block; background: var(--hover);
+      border-radius: 3px; padding: 3px 8px; font-size: 12px; color: var(--text); margin: 2px;
+    }
+
+    /* IMAGE GALLERY */
+    .gallery-section {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 20px; margin-bottom: 20px;
+    }
+
+    .gallery-section h3 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 14px; }
+
+    .gallery-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 14px; margin-bottom: 14px;
+    }
+
+    .gallery-item {
+      position: relative; border-radius: 8px; overflow: hidden;
+      border: 1px solid var(--border); cursor: pointer; background: var(--surface2);
+    }
+
+    .gallery-item img { width: 100%; height: 220px; object-fit: cover; display: block; transition: opacity 0.15s; }
+    .gallery-item:hover img { opacity: 0.9; }
+
+    /* caption - always fully visible */
+    .gallery-item-caption {
+      padding: 7px 9px 7px; font-size: 11px; color: var(--muted);
+      border-top: 1px solid var(--border); background: var(--surface);
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .gi-name {
+      border: none; background: transparent; font-size: 12px; font-weight: 600;
+      color: var(--text); outline: none; padding: 0; width: 100%;
+    }
+    .gi-note {
+      border: none; background: transparent; font-family: inherit;
+      font-size: 11px; color: var(--muted); outline: none; padding: 0;
+      resize: none; width: 100%; line-height: 1.4;
+      max-height: 2.8em; overflow: hidden; transition: max-height 0.2s;
+    }
+    .gi-note:focus { max-height: 8em; overflow: auto; }
+    .gi-note:empty:not(:focus)::placeholder { opacity: 0.5; }
+    .gi-tags { display: flex; flex-wrap: wrap; gap: 3px; }
+    .gi-tag-pill {
+      background: rgba(144,101,176,0.12); color: var(--tag-color);
+      border-radius: 10px; padding: 1px 6px; font-size: 10px; white-space: nowrap;
+    }
+    .gi-tag-input {
+      border: none; background: transparent; font-family: inherit; font-size: 10px;
+      color: var(--muted); outline: none; padding: 0; min-width: 30px; width: 40px;
+    }
+    .gi-select {
+      background: transparent; border: none; font-family: inherit; font-size: 10px;
+      color: var(--muted); outline: none; cursor: pointer; padding: 0; max-width: 100%;
+    }
+
+    .gallery-item-del {
+      position: absolute; top: 6px; right: 6px;
+      background: rgba(15,15,15,0.5); color: #fff; border: none; border-radius: 50%;
+      width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: none;
+      align-items: center; justify-content: center;
+    }
+    .gallery-item:hover .gallery-item-del { display: flex; }
+
+    .gallery-item-check {
+      position: absolute; top: 6px; left: 6px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: rgba(255,255,255,0.88); border: 2px solid rgba(55,53,47,0.28);
+      cursor: pointer; font-size: 11px; color: transparent; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.12s; z-index: 4;
+    }
+    .gallery-item:hover .gallery-item-check,
+    .gallery-item.bulk-sel .gallery-item-check { opacity: 1; }
+    .gallery-item.bulk-sel .gallery-item-check {
+      background: var(--accent-blue); border-color: var(--accent-blue); color: #fff;
+    }
+    .gallery-item.bulk-sel { outline: 2px solid var(--accent-blue); outline-offset: -1px; }
+
+    /* push drag handle right so it doesn't overlap checkmark */
+    .gallery-item:hover .drag-handle { left: 30px; }
+
+    .bulk-bar {
+      display: none; align-items: center; gap: 6px; flex-wrap: wrap;
+      background: var(--accent); color: #fff; border-radius: 6px;
+      padding: 8px 12px; margin-bottom: 10px; font-size: 12px;
+    }
+    .bulk-bar.visible { display: flex; }
+    .bulk-bar input, .bulk-bar select {
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 4px; color: #fff; font-size: 12px; padding: 4px 8px;
+      font-family: inherit; outline: none;
+    }
+    .bulk-bar input::placeholder { color: rgba(255,255,255,0.5); }
+    .bulk-bar select option { background: #37352f; color: #fff; }
+    .bulk-bar .bulk-btn {
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 4px; color: #fff; font-size: 12px; padding: 4px 10px;
+      cursor: pointer; font-family: inherit; white-space: nowrap;
+    }
+    .bulk-bar .bulk-btn:hover { background: rgba(255,255,255,0.26); }
+    .bulk-bar .bulk-btn.danger { background: rgba(224,62,62,0.55); border-color: rgba(224,62,62,0.7); }
+    .bulk-bar .bulk-btn.danger:hover { background: rgba(224,62,62,0.8); }
+    .bulk-bar .bulk-sep { opacity: 0.3; }
+
+    .img-tag {
+      display: inline-flex; align-items: center; gap: 3px;
+      background: rgba(144,101,176,0.14); color: var(--tag-color);
+      border-radius: 3px; padding: 2px 7px; font-size: 11px; font-weight: 500;
+      margin: 2px 2px 0 0; white-space: nowrap;
+    }
+
+    .img-tag button {
+      background: none; border: none; cursor: pointer; padding: 0;
+      font-size: 10px; color: var(--tag-color); line-height: 1; opacity: 0.6;
+    }
+    .img-tag button:hover { opacity: 1; }
+
+    .tag-input {
+      border: none; background: transparent; font-family: inherit;
+      font-size: 11px; color: var(--text); outline: none; width: 90px; padding: 2px 4px;
+    }
+    .tag-input::placeholder { color: var(--muted); }
+
+    .tag-filter-pills { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+    .tag-filter-chip {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+      padding: 3px 9px; font-size: 11px; color: var(--muted); cursor: pointer;
+      font-family: inherit; white-space: nowrap; transition: background 0.1s, color 0.1s, border-color 0.1s;
+    }
+    .tag-filter-chip:hover { background: var(--hover2); color: var(--text); }
+    .tag-filter-chip.active {
+      background: rgba(144,101,176,0.15); border-color: rgba(144,101,176,0.4);
+      color: #8b5cf6; font-weight: 600;
+    }
+
+    .gallery-item[draggable] { cursor: grab; }
+    .gallery-item[draggable]:active { cursor: grabbing; }
+    .gallery-item.drag-over-item { outline: 2px dashed var(--accent-blue); outline-offset: 2px; opacity: 0.7; }
+    .gallery-item.dragging { opacity: 0.35; }
+
+    .drag-handle {
+      position: absolute; top: 6px; left: 6px;
+      background: rgba(15,15,15,0.45); color: #fff; border-radius: 3px;
+      padding: 2px 5px; font-size: 11px; cursor: grab; display: none; line-height: 1.4;
+    }
+    .gallery-item:hover .drag-handle { display: block; }
+
+    /* UPLOAD ZONE */
+    .upload-zone {
+      border: 1px dashed var(--border2); border-radius: 6px; padding: 24px;
+      text-align: center; color: var(--muted); font-size: 13px; cursor: pointer; transition: all 0.15s;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: var(--accent-blue); background: rgba(35,131,226,0.04); color: var(--accent-blue);
+    }
+    .upload-zone .icon { font-size: 24px; margin-bottom: 6px; opacity: 0.6; }
+
+    /* LIGHTBOX */
+    .lightbox {
+      display: none; position: fixed; inset: 0;
+      background: rgba(15,15,15,0.92); z-index: 200;
+      align-items: center; justify-content: center; flex-direction: column;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img { max-width: 88vw; max-height: 76vh; border-radius: 4px; box-shadow: 0 24px 80px rgba(0,0,0,0.6); }
+    .lightbox-caption { margin-top: 12px; color: rgba(255,255,255,0.7); font-size: 13px; text-align: center; max-width: 80vw; }
+    .lightbox-tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
+    .lightbox-tag { background: rgba(144,101,176,0.3); color: rgba(255,255,255,0.85); border-radius: 10px; padding: 2px 8px; font-size: 11px; }
+    .lightbox-close { position: absolute; top: 20px; right: 24px; background: none; border: none; color: rgba(255,255,255,0.7); font-size: 26px; cursor: pointer; }
+    .lightbox-close:hover { color: #fff; }
+    .lightbox-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(255,255,255,0.12); border: none; color: #fff; border-radius: 50%;
+      width: 44px; height: 44px; font-size: 20px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center; transition: background 0.15s;
+    }
+    .lightbox-nav:hover { background: rgba(255,255,255,0.25); }
+    .lightbox-nav.prev { left: 20px; }
+    .lightbox-nav.next { right: 20px; }
+    .lightbox-counter { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.45); font-size: 12px; }
+
+    /* TIMESTAMPS */
+    .ts { font-size: 11px; color: var(--muted); }
+
+    /* BACK BUTTON */
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 13px; color: var(--muted); background: none; border: none;
+      cursor: pointer; padding: 0; margin-bottom: 24px;
+    }
+    .back-btn:hover { color: var(--text); }
+
+    /* NOTES INLINE */
+    .inline-note {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 16px 20px; margin-bottom: 20px;
+    }
+
+    .inline-note h3 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 10px; }
+
+    .inline-note textarea {
+      width: 100%; background: transparent; border: none;
+      color: var(--text); font-family: inherit; font-size: 13px; padding: 4px 0;
+      line-height: 1.6; resize: vertical; min-height: 100px;
+    }
+    .inline-note textarea:focus { outline: none; }
+
+    /* MIRROR PICKER */
+    .mirror-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(15,15,15,0.6); z-index: 150;
+      align-items: flex-start; justify-content: center; padding-top: 60px;
+    }
+    .mirror-overlay.open { display: flex; }
+    .mirror-panel {
+      background: var(--surface); border-radius: 8px;
+      box-shadow: rgba(15,15,15,0.12) 0 0 0 1px, rgba(15,15,15,0.2) 0 8px 40px;
+      width: 90%; max-width: 820px; max-height: 75vh;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .mirror-panel-head {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+    }
+    .mirror-panel-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+    .mirror-pick-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 8px;
+    }
+    .mirror-pick-item {
+      border: 2px solid var(--border); border-radius: 6px; overflow: hidden;
+      cursor: pointer; position: relative; background: var(--surface2);
+    }
+    .mirror-pick-item img { width: 100%; height: 110px; object-fit: cover; display: block; }
+    .mirror-pick-item .mirror-pick-name { font-size: 11px; color: var(--muted); padding: 5px 7px; }
+    .mirror-pick-item.selected { border-color: var(--accent-blue); }
+    .mirror-pick-item.selected::after {
+      content: '✓'; position: absolute; top: 5px; right: 6px;
+      background: var(--accent-blue); color: #fff; border-radius: 50%;
+      width: 18px; height: 18px; font-size: 11px; display: flex; align-items: center; justify-content: center;
+    }
+    .mirror-pick-item.already { opacity: 0.45; cursor: default; pointer-events: none; }
+    .mirror-badge {
+      position: absolute; bottom: 5px; left: 5px;
+      background: rgba(35,131,226,0.85); color: #fff;
+      font-size: 9px; font-weight: 600; padding: 2px 5px; border-radius: 3px;
+      letter-spacing: 0.04em; pointer-events: none;
+    }
+
+    [contenteditable]:empty:before { content: attr(data-placeholder); color: var(--muted); pointer-events: none; }
+    [contenteditable]:focus { background: var(--hover); border-radius: 3px; }
+    .badge-select {
+      appearance: none; -webkit-appearance: none;
+      border: none; cursor: pointer; font-family: inherit;
+      font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 3px;
+    }
+    .badge-select.strong { background: rgba(15,123,108,0.14); color: var(--accent2); }
+    .badge-select.strong option { background: #fff; color: var(--text); }
+    .badge-select.moderate { background: rgba(217,115,13,0.14); color: #d9730d; }
+    .badge-select.weak { background: rgba(224,62,62,0.14); color: var(--accent3); }
+
+
+    /* DARK MODE */
+    [data-theme="dark"] {
+      --bg: #191919;
+      --sidebar: #111111;
+      --surface: #202020;
+      --surface2: rgba(255,255,255,0.05);
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.16);
+      --accent: #e6e3dd;
+      --accent-blue: #4da3f5;
+      --accent2: #4cc9b0;
+      --accent3: #f87171;
+      --text: #e6e3dd;
+      --muted: rgba(230,227,221,0.45);
+      --hover: rgba(255,255,255,0.055);
+      --hover2: rgba(255,255,255,0.08);
+      --tag-color: #b794f4;
+    }
+    [data-theme="dark"] .badge-select.strong option,
+    [data-theme="dark"] .bulk-bar select option { background: #202020; color: #e6e3dd; }
+    [data-theme="dark"] nav a.active { background: rgba(255,255,255,0.08); }
+    [data-theme="dark"] .lightbox { background: rgba(0,0,0,0.92); }
+
+    .theme-toggle {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; margin: 8px 8px 0; border-radius: 6px;
+      cursor: pointer; font-size: 12px; color: var(--muted);
+      background: none; border: none; width: calc(100% - 16px); font-family: inherit;
+    }
+    .theme-toggle:hover { background: var(--hover); color: var(--text); }
+    .theme-toggle-track {
+      width: 28px; height: 16px; border-radius: 8px; background: var(--border2);
+      position: relative; transition: background 0.2s; flex-shrink: 0;
+    }
+    .theme-toggle-track.on { background: var(--accent-blue); }
+    .theme-toggle-thumb {
+      position: absolute; top: 2px; left: 2px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: #fff; transition: transform 0.2s;
+    }
+    .theme-toggle-track.on .theme-toggle-thumb { transform: translateX(12px); }
+
+    @media (max-width: 768px) {
+      nav { display: none; }
+      main { padding: 24px 20px; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .detail-sections { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav>
+  <div class="logo">Competitor Intel</div>
+
+  <div class="nav-section">
+    <div class="section-label collapsible" onclick="toggleSection('sec-overview',this)">
+      <span>Overview</span><span class="chevron">▾</span>
+    </div>
+    <div class="nav-group" id="sec-overview">
+      <a href="#" class="active" onclick="showPage('competitors', this)">Competitors</a>
+      <a href="#" onclick="showPage('whats-missing', this)">What's Missing</a>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="section-label collapsible" onclick="toggleSection('sec-analysis',this)">
+      <span>Analysis</span><span class="chevron">▾</span>
+    </div>
+    <div class="nav-group" id="sec-analysis">
+      <a href="#" onclick="showPage('tag-search', this)">Tag Search</a>
+      <a href="#" onclick="showPage('matrix', this)">Feature Matrix</a>
+      <a href="#" onclick="showPage('positioning', this)">Positioning</a>
+      <a href="#" onclick="showPage('opportunities', this)">Opportunities</a>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="section-label collapsible" onclick="toggleSection('sec-notes',this)">
+      <span>Notes</span><span class="chevron">▾</span>
+    </div>
+    <div class="nav-group" id="sec-notes">
+      <a href="#" onclick="showPage('notes', this)">Research Notes</a>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="section-label collapsible" onclick="toggleSection('sec-topics',this)" style="justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:6px"><span>Research Topics</span><span class="chevron">▾</span></div>
+      <button onclick="event.stopPropagation();toggleTopicForm()" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;line-height:1;padding:0" title="Add topic">+</button>
+    </div>
+    <div class="nav-group" id="sec-topics">
+      <div id="new-topic-form" style="display:none;padding:6px 12px 10px">
+        <input id="new-topic-input" type="text" placeholder="Topic name..."
+          onkeydown="if(event.key==='Enter')submitNewTopic();if(event.key==='Escape')toggleTopicForm()"
+          style="width:100%;padding:7px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-family:inherit;outline:none" />
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button onclick="submitNewTopic()" style="flex:1;background:var(--accent);color:#fff;border:none;border-radius:7px;padding:6px;font-size:12px;font-weight:600;cursor:pointer">Add</button>
+          <button onclick="toggleTopicForm()" style="flex:1;background:var(--surface2);color:var(--muted);border:1px solid var(--border);border-radius:7px;padding:6px;font-size:12px;cursor:pointer">Cancel</button>
+        </div>
+      </div>
+      <div id="topics-nav"></div>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="section-label collapsible" onclick="toggleSection('sec-data',this)">
+      <span>Data</span><span class="chevron">▾</span>
+    </div>
+    <div class="nav-group" id="sec-data">
+      <a href="#" onclick="exportData()">Export JSON</a>
+      <a href="#" onclick="document.getElementById('import-input').click()">Import JSON</a>
+      <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(this)" />
+    </div>
+  </div>
+
+  <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn">
+    <span id="theme-toggle-label">Dark mode</span>
+    <div class="theme-toggle-track" id="theme-toggle-track">
+      <div class="theme-toggle-thumb"></div>
+    </div>
+  </button>
+
+</nav>
+
+<!-- MAIN -->
+<main>
+
+  <!-- COMPETITORS -->
+  <div id="competitors" class="page active">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h1 style="margin:0">Competitors</h1>
+      <button class="btn-primary" onclick="openForm()">+ Add Competitor</button>
+    </div>
+
+    <div class="search-bar">
+      <input type="text" placeholder="Search competitors..." id="search-input" oninput="filterCompetitors()" />
+    </div>
+
+    <div class="grid" id="competitors-grid">
+      <div class="empty">
+        <div class="icon">🏢</div>
+        <p>No competitors yet.<br>Click "+ Add Competitor" to begin.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHAT'S MISSING -->
+  <div id="whats-missing" class="page">
+    <h1>What's Missing</h1>
+    <p class="subtitle">Research gaps, open questions, and things still to investigate.</p>
+    <div id="missing-items-list" style="margin-top:20px"></div>
+    <button class="btn" style="margin-top:12px" onclick="addMissingItem()">+ Add item</button>
+  </div>
+
+  <!-- TAG SEARCH -->
+  <div id="tag-search" class="page">
+    <h1>Tag Search</h1>
+    <p class="subtitle">Search images across all competitors and topics by tag.</p>
+    <div style="display:flex;gap:10px;margin-bottom:20px;align-items:center">
+      <input id="tag-search-input" type="text" placeholder="Search tags..."
+        oninput="renderTagSearch()"
+        style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;font-family:inherit" />
+      <button class="btn-secondary" onclick="document.getElementById('tag-search-input').value='';renderTagSearch()">Clear</button>
+    </div>
+    <div id="all-tags-cloud" style="margin-bottom:28px"></div>
+    <div id="tag-search-results"></div>
+  </div>
+
+  <!-- FEATURE MATRIX -->
+  <div id="matrix" class="page">
+    <h1>Feature Matrix</h1>
+    <p class="subtitle">Side-by-side feature comparison. Add competitors first to populate this view.</p>
+
+    <div class="table-wrap" id="matrix-table-wrap">
+      <div class="empty">
+        <div class="icon">📋</div>
+        <p>Add competitors to build the feature matrix.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- POSITIONING -->
+  <div id="positioning" class="page">
+    <h1>Positioning</h1>
+    <p class="subtitle">How competitors position themselves by market segment.</p>
+
+    <div class="table-wrap" id="positioning-table-wrap">
+      <div class="empty">
+        <div class="icon">🎯</div>
+        <p>Add competitors with positioning info to populate this view.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPPORTUNITIES -->
+  <div id="opportunities" class="page">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <h1 style="margin:0">Opportunities</h1>
+      <button class="btn" onclick="addOpportunity()">+ Add</button>
+    </div>
+    <p class="subtitle">Gaps and advantages surfaced from research.</p>
+    <div id="opportunities-list"></div>
+  </div>
+
+  <!-- TOPIC PAGE -->
+  <div id="topic-page" class="page">
+    <div id="topic-page-content"></div>
+  </div>
+
+  <!-- MIRROR PICKER OVERLAY -->
+  <div id="mirror-overlay" class="mirror-overlay" onclick="if(event.target===this)closeMirrorPicker()">
+    <div class="mirror-panel">
+      <div class="mirror-panel-head">
+        <div style="display:flex;align-items:center;gap:12px">
+          <strong style="font-size:15px">Pull images from competitor</strong>
+          <select id="mirror-comp-select" onchange="loadMirrorGrid()"
+            style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:5px 10px;font-family:inherit">
+            <option value="">— choose competitor</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span id="mirror-pick-count" style="font-size:12px;color:var(--muted)"></span>
+          <button class="btn" onclick="confirmMirrorPull()" id="mirror-confirm-btn" disabled style="font-size:13px">Pull selected</button>
+          <button onclick="closeMirrorPicker()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--muted);line-height:1">×</button>
+        </div>
+      </div>
+      <div class="mirror-panel-body">
+        <div id="mirror-pick-grid" class="mirror-pick-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPETITOR DETAIL -->
+  <div id="competitor-detail" class="page">
+    <div id="detail-sticky-bar">
+      <button class="back-btn" style="margin:0;padding:0;font-size:13px" onclick="showPage('competitors', document.querySelector('nav a[onclick*=competitors]'))">←</button>
+      <img id="detail-sticky-logo" width="20" height="20" style="border-radius:4px;object-fit:contain;display:none" onerror="this.style.display='none'" />
+      <span id="detail-sticky-name" style="font-weight:600;font-size:15px"></span>
+    </div>
+    <button class="back-btn" onclick="showPage('competitors', document.querySelector('nav a[onclick*=competitors]'))">← Back to Competitors</button>
+    <div id="detail-page-content"></div>
+  </div>
+
+  <!-- NOTES -->
+  <div id="notes" class="page">
+    <h1>Research Notes</h1>
+    <p class="subtitle">Free-form notes. Auto-saved to browser storage.</p>
+
+    <div class="note-card">
+      <h3>General Observations</h3>
+      <textarea id="note-general" placeholder="Market trends, patterns, high-level takeaways..." oninput="saveNote('general', this.value)"></textarea>
+    </div>
+  </div>
+
+</main>
+
+<!-- TAG AUTOCOMPLETE DATALIST -->
+<datalist id="cr-tag-ac"></datalist>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="lbBgClick(event)">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <button class="lightbox-nav prev" onclick="event.stopPropagation();lbNav(-1)" id="lb-prev">‹</button>
+  <button class="lightbox-nav next" onclick="event.stopPropagation();lbNav(1)" id="lb-next">›</button>
+  <div class="lightbox-counter" id="lb-counter"></div>
+  <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()" />
+  <div class="lightbox-caption" id="lightbox-caption"></div>
+  <div class="lightbox-tags" id="lightbox-tags"></div>
+</div>
+
+<!-- IMAGE SOURCE PICKER -->
+<div class="form-overlay" id="img-source-overlay">
+  <div class="form-modal" style="max-width:420px">
+    <button class="modal-close" onclick="cancelImageSource()">✕</button>
+    <h2 style="margin-bottom:6px;font-size:17px">Add Image</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:20px">Where is this screenshot from?</p>
+
+    <div id="img-source-preview" style="margin-bottom:16px;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:var(--surface2)">
+      <img id="img-source-thumb" src="" style="width:100%;max-height:160px;object-fit:cover;display:block" />
+    </div>
+
+    <div class="form-group">
+      <label>Image Name</label>
+      <input type="text" id="img-source-name" placeholder="e.g. Homepage banner" />
+    </div>
+
+    <div class="form-group">
+      <label>Source — Competitor</label>
+      <select id="img-source-competitor" onchange="syncSourceInput(this.value)"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:14px;padding:10px 12px">
+        <option value="">None / custom</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Source — Custom name</label>
+      <input type="text" id="img-source-custom" placeholder="e.g. Twitter, Product Hunt, own research..."
+        oninput="document.getElementById('img-source-competitor').value=''" />
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="cancelImageSource()">Cancel</button>
+      <button class="btn-primary" onclick="confirmImageSource()">Add Image</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD COMPETITOR FORM -->
+<div class="form-overlay" id="form-overlay" onclick="closeFormOverlay(event)">
+  <div class="form-modal">
+    <button class="modal-close" onclick="closeForm()">✕</button>
+    <h2 id="form-title" style="margin-bottom:20px">Add Competitor</h2>
+    <input type="hidden" id="f-edit-id" value="" />
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Company Name *</label>
+        <input type="text" id="f-name" placeholder="e.g. Acme Corp" />
+      </div>
+      <div class="form-group">
+        <label>Product Name</label>
+        <input type="text" id="f-product" placeholder="e.g. Acme App" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Website</label>
+      <input type="url" id="f-website" placeholder="https://" />
+    </div>
+
+    <div class="form-group">
+      <label>Description</label>
+      <textarea id="f-desc" placeholder="Brief description of what they do..."></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Pricing (starting at)</label>
+        <input type="text" id="f-pricing" placeholder="e.g. Free / $9/mo" />
+      </div>
+      <div class="form-group">
+        <label>Strength</label>
+        <select id="f-strength">
+          <option value="strong">Strong</option>
+          <option value="moderate" selected>Moderate</option>
+          <option value="weak">Weak</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group" style="display:none">
+      <div class="checkbox-group">
+        <label><input type="checkbox" id="f-mobile" /></label>
+        <label><input type="checkbox" id="f-saas" /></label>
+        <label><input type="checkbox" id="f-marketplace" /></label>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Key Features (comma-separated)</label>
+      <input type="text" id="f-features" placeholder="e.g. Dashboard, API, Integrations" />
+    </div>
+
+    <div class="form-group">
+      <label>Positioning</label>
+      <input type="text" id="f-position" placeholder="e.g. SMB-focused low-code analytics" />
+    </div>
+
+    <div class="form-group">
+      <label>Revenue Share</label>
+      <input type="text" id="f-revshare" placeholder="e.g. 85% under $1M → 70%" />
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-secondary" onclick="closeForm()">Cancel</button>
+      <button class="btn-primary" id="form-submit-btn" onclick="saveCompetitorForm()">Save Competitor</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ─── Data ───────────────────────────────────────────────
+  let competitors = JSON.parse(localStorage.getItem('cr-competitors') || '[]');
+
+  // ─── Collapsible sections ───────────────────────────────
+  const collapsedSections = new Set(JSON.parse(localStorage.getItem('cr-collapsed') || '[]'));
+
+  function toggleSection(id, labelEl) {
+    const group = document.getElementById(id);
+    if (!group) return;
+    const isCollapsed = collapsedSections.has(id);
+    if (isCollapsed) {
+      collapsedSections.delete(id);
+      group.classList.remove('collapsed');
+      labelEl.classList.remove('collapsed');
+    } else {
+      collapsedSections.add(id);
+      group.classList.add('collapsed');
+      labelEl.classList.add('collapsed');
+    }
+    localStorage.setItem('cr-collapsed', JSON.stringify([...collapsedSections]));
+  }
+
+  function restoreCollapsed() {
+    collapsedSections.forEach(id => {
+      const group = document.getElementById(id);
+      const label = group && group.previousElementSibling;
+      if (group) group.classList.add('collapsed');
+      if (label) label.classList.add('collapsed');
+    });
+  }
+
+  // ─── Nav ────────────────────────────────────────────────
+  function showPage(id, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (el) el.classList.add('active');
+    if (id === 'competitors') renderCompetitors();
+    if (id === 'tag-search') renderTagSearch();
+    if (id === 'matrix') renderMatrix();
+    if (id === 'positioning') renderPositioning();
+    if (id === 'opportunities') renderOpportunities();
+    if (id === 'notes') loadNotes();
+    if (id === 'whats-missing') renderMissingItems();
+  }
+
+  // ─── Save / Load ────────────────────────────────────────
+  function save() {
+    localStorage.setItem('cr-competitors', JSON.stringify(competitors));
+  }
+
+  function saveNote(key, val) {
+    localStorage.setItem('cr-note-' + key, val);
+  }
+
+  function loadNotes() {
+    const el = document.getElementById('note-general');
+    if (el) el.value = localStorage.getItem('cr-note-general') || '';
+  }
+
+  // ─── Competitors ────────────────────────────────────────
+  function renderCompetitors(data) {
+    const list = data || competitors;
+    const grid = document.getElementById('competitors-grid');
+    if (list.length === 0) {
+      grid.innerHTML = `<div class="empty"><div class="icon">🏢</div><p>No competitors yet.<br>Click "+ Add Competitor" to begin.</p></div>`;
+    } else {
+      grid.innerHTML = list.map(cardHTML).join('');
+    }
+  }
+
+  const LOGOS = {
+    'shopify': 'https://www.google.com/s2/favicons?sz=32&domain=shopify.com',
+    'apple':   'https://www.google.com/s2/favicons?sz=32&domain=apple.com',
+    'google':  'https://www.google.com/s2/favicons?sz=32&domain=play.google.com',
+    'slack':   'https://www.google.com/s2/favicons?sz=32&domain=slack.com',
+    'webflow': 'https://www.google.com/s2/favicons?sz=32&domain=webflow.com',
+    'notion':  'https://www.google.com/s2/favicons?sz=32&domain=notion.so',
+    'framer':  'https://www.google.com/s2/favicons?sz=32&domain=framer.com',
+    'wix':     'https://www.google.com/s2/favicons?sz=32&domain=wix.com',
+  };
+
+  function getLogo(c) {
+    if (c.logo) return c.logo;
+    if (c.website) {
+      try {
+        const host = new URL(c.website).hostname.replace('www.', '');
+        return `https://www.google.com/s2/favicons?sz=32&domain=${host}`;
+      } catch {}
+    }
+    const key = Object.keys(LOGOS).find(k => c.name.toLowerCase().includes(k));
+    return key ? LOGOS[key] : null;
+  }
+
+  function cardHTML(c) {
+    const tags = '';
+    const badge = `<span class="badge ${c.strength}">${c.strength}</span>`;
+    const logo = getLogo(c);
+    const logoHTML = logo
+      ? `<img src="${logo}" width="20" height="20" style="border-radius:4px;flex-shrink:0;object-fit:contain" onerror="this.style.display='none'" />`
+      : `<div style="width:20px;height:20px;border-radius:4px;background:var(--surface2);flex-shrink:0"></div>`;
+    return `
+      <div class="card" onclick="openDetail('${c.id}')">
+        <div class="card-header">
+          <div style="display:flex;align-items:center;gap:8px">
+            ${logoHTML}
+            <div class="card-name">${c.name}</div>
+          </div>
+          ${badge}
+        </div>
+        <div class="tags">${tags}</div>
+${(c.features || []).length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px">${(c.features).slice(0,4).map(f => `<span style="font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 7px;color:var(--muted)">${escHtml(f)}</span>`).join('')}${c.features.length > 4 ? `<span style="font-size:11px;color:var(--muted);padding:2px 4px">+${c.features.length - 4}</span>` : ''}</div>` : ''}
+        <div class="card-meta">
+          <span>${c.pricing || '—'}</span>
+          <span class="ts">edited ${fmtDate(c.updatedAt || c.createdAt)}</span>
+        </div>
+      </div>`;
+  }
+
+  function filterCompetitors() {
+    const q = document.getElementById('search-input').value.toLowerCase();
+    let list = competitors;
+    if (q) list = list.filter(c =>
+      c.name.toLowerCase().includes(q) ||
+      (c.desc || '').toLowerCase().includes(q) ||
+      (c.positioning || '').toLowerCase().includes(q) ||
+      (c.pricing || '').toLowerCase().includes(q) ||
+      (c.product || '').toLowerCase().includes(q) ||
+      (c.features || []).some(f => f.toLowerCase().includes(q))
+    );
+    renderCompetitors(list);
+  }
+
+  // ─── Matrix ─────────────────────────────────────────────
+  function getMxData() {
+    const raw = localStorage.getItem('cr-matrix');
+    if (raw) return JSON.parse(raw);
+    // Migrate from c.features on first load
+    const rows = [];
+    const cells = {};
+    const allFeatures = [...new Set(competitors.flatMap(c => c.features || []))];
+    allFeatures.forEach((f, i) => {
+      const rowId = 'r' + i;
+      rows.push({ id: rowId, name: f });
+      cells[rowId] = {};
+      competitors.forEach(c => {
+        if ((c.features || []).includes(f)) cells[rowId][c.id] = '✓';
+      });
+    });
+    const data = { rows, cells };
+    localStorage.setItem('cr-matrix', JSON.stringify(data));
+    return data;
+  }
+
+  function saveMxData(data) {
+    localStorage.setItem('cr-matrix', JSON.stringify(data));
+  }
+
+  function renderMatrix() {
+    const wrap = document.getElementById('matrix-table-wrap');
+    if (competitors.length === 0) {
+      wrap.innerHTML = `<div class="empty"><div class="icon">📋</div><p>Add competitors to build the feature matrix.</p></div>`;
+      return;
+    }
+    const data = getMxData();
+    const { rows, cells } = data;
+
+    const headers = competitors.map(c => `<th style="width:80px;max-width:80px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(c.name)}">${escHtml(c.name)}</th>`).join('');
+    const rowsHTML = rows.map(row => {
+      const rowCells = competitors.map(c => {
+        const val = (cells[row.id] || {})[c.id] || '';
+        return `<td style="padding:6px 4px;text-align:center"><div class="mx-cell ${val==='✓'?'v':val==='✗'?'x':val?'text':''}"
+          onclick="mxCellClick('${row.id}','${c.id}',this)"
+          title="Click to select"
+        >${escHtml(val)}</div></td>`;
+      }).join('');
+      return `<tr>
+        <td style="white-space:nowrap">
+          <button class="mx-row-del" onclick="mxDeleteRow('${row.id}')" title="Delete row">✕</button>
+          <span contenteditable="true" spellcheck="false"
+            style="font-weight:600;outline:none"
+            onblur="mxRenameRow('${row.id}',this.innerText.trim())"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+          >${escHtml(row.name)}</span>
+        </td>${rowCells}
+      </tr>`;
+    }).join('');
+
+    wrap.innerHTML = `
+      <div style="overflow-x:auto;max-width:100%">
+        <table style="width:auto;min-width:100%">
+          <thead><tr><th style="min-width:160px">Feature</th>${headers}</tr></thead>
+          <tbody>${rowsHTML}</tbody>
+        </table>
+      </div>
+      <div class="mx-add-row">
+        <input id="mx-new-row" placeholder="+ Add feature row..."
+          onkeydown="if(event.key==='Enter'&&this.value.trim()){mxAddRow(this);event.preventDefault()}" />
+        <button class="btn" onclick="mxAddRow(document.getElementById('mx-new-row'))">Add</button>
+      </div>`;
+  }
+
+  function mxCellClick(rowId, compId, el) {
+    if (el.querySelector('select') || el.querySelector('input')) return;
+    const data = getMxData();
+    const cur = ((data.cells[rowId] || {})[compId]) || '';
+    const isText = cur && cur !== '✓' && cur !== '✗';
+    el.innerHTML = `<select class="mx-cell-input" style="text-align:center"
+      onchange="mxCellSelectChange('${rowId}','${compId}',this)"
+      onblur="mxCellSelectBlur('${rowId}','${compId}',this)">
+      <option value=""${cur===''?' selected':''}>—</option>
+      <option value="✓"${cur==='✓'?' selected':''}>✓</option>
+      <option value="✗"${cur==='✗'?' selected':''}>✗</option>
+      <option value="__text__"${isText?' selected':''}>text…</option>
+      ${isText?`<option value="${escHtml(cur)}" selected style="display:none">${escHtml(cur)}</option>`:''}
+    </select>`;
+    const sel = el.querySelector('select');
+    sel.focus();
+    // If current is text, keep it shown
+    if (isText) sel.value = '__text__';
+  }
+
+  function mxCellSelectChange(rowId, compId, sel) {
+    if (sel.value === '__text__') {
+      const el = sel.parentElement;
+      const data = getMxData();
+      const cur = ((data.cells[rowId] || {})[compId]) || '';
+      const isText = cur && cur !== '✓' && cur !== '✗';
+      el.innerHTML = `<input class="mx-cell-input" value="${isText ? escHtml(cur) : ''}"
+        placeholder="text..."
+        onblur="mxCellSave('${rowId}','${compId}',this)"
+        onkeydown="if(event.key==='Enter'){this.blur()}else if(event.key==='Escape'){mxCellSelectBlur('${rowId}','${compId}',this)}event.stopPropagation()" />`;
+      el.querySelector('input').select();
+      return;
+    }
+    const val = sel.value;
+    mxCellSetValue(rowId, compId, val, sel.parentElement);
+  }
+
+  function mxCellSelectBlur(rowId, compId, el) {
+    // If blur fires without change (escape), restore
+    const data = getMxData();
+    const cur = ((data.cells[rowId] || {})[compId]) || '';
+    setTimeout(() => {
+      const parent = el.nodeType === 1 ? el : el.parentElement;
+      if (parent && (parent.querySelector('select') || parent.querySelector('input'))) {
+        parent.textContent = cur;
+        parent.className = 'mx-cell' + (cur==='✓'?' v':cur==='✗'?' x':cur?' text':'');
+      }
+    }, 100);
+  }
+
+  function mxCellSetValue(rowId, compId, val, el) {
+    const data = getMxData();
+    if (!data.cells[rowId]) data.cells[rowId] = {};
+    data.cells[rowId][compId] = val;
+    saveMxData(data);
+    el.textContent = val;
+    el.className = 'mx-cell' + (val==='✓'?' v':val==='✗'?' x':val?' text':'');
+  }
+
+  function mxCellSave(rowId, compId, input) {
+    const val = input.value.trim();
+    mxCellSetValue(rowId, compId, val, input.parentElement);
+  }
+
+  function mxCellEdit(rowId, compId, el) {
+    if (el.querySelector('select') || el.querySelector('input')) return;
+    const data = getMxData();
+    const cur = ((data.cells[rowId] || {})[compId]) || '';
+    el.innerHTML = `<input class="mx-cell-input" value="${escHtml(cur)}"
+      placeholder="text..."
+      onblur="mxCellSave('${rowId}','${compId}',this)"
+      onkeydown="if(event.key==='Enter'){this.blur()}event.stopPropagation()" />`;
+    el.querySelector('input').select();
+  }
+
+  function mxAddRow(input) {
+    const name = input.value.trim();
+    if (!name) return;
+    const data = getMxData();
+    const rowId = 'r' + Date.now();
+    data.rows.push({ id: rowId, name });
+    if (!data.cells[rowId]) data.cells[rowId] = {};
+    saveMxData(data);
+    input.value = '';
+    renderMatrix();
+  }
+
+  function mxDeleteRow(rowId) {
+    const data = getMxData();
+    data.rows = data.rows.filter(r => r.id !== rowId);
+    delete data.cells[rowId];
+    saveMxData(data);
+    renderMatrix();
+  }
+
+  function mxRenameRow(rowId, name) {
+    if (!name) return;
+    const data = getMxData();
+    const row = data.rows.find(r => r.id === rowId);
+    if (row) { row.name = name; saveMxData(data); }
+  }
+
+  // ─── Positioning ────────────────────────────────────────
+  function renderPositioning() {
+    const wrap = document.getElementById('positioning-table-wrap');
+    if (competitors.length === 0) {
+      wrap.innerHTML = `<div class="empty"><div class="icon">🎯</div><p>Add competitors with positioning info to populate this view.</p></div>`;
+      return;
+    }
+
+    const rows = competitors.map(c => {
+      return `<tr>
+        <td><strong>${c.name}</strong></td>
+        <td><span contenteditable="true" spellcheck="false"
+          style="outline:none;display:block;min-width:80px"
+          onblur="savePositioning('${c.id}',this.innerText.trim())"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+        >${escHtml(c.positioning || '')}</span></td>
+        <td><span class="badge ${c.strength}">${c.strength}</span></td>
+        <td>${c.pricing || '—'}</td>
+      </tr>`;
+    }).join('');
+
+    wrap.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Competitor</th>
+            <th>Positioning</th>
+            <th>Threat Level</th>
+            <th>Pricing</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  // ─── Opportunities ──────────────────────────────────────
+  function renderOpportunities() {
+    const list = document.getElementById('opportunities-list');
+    const opps = getOpportunities();
+    if (!opps.length) {
+      list.innerHTML = `<div class="empty"><div class="icon">💡</div><p>No opportunities yet. Click + Add to create one.</p></div>`;
+      return;
+    }
+    list.innerHTML = opps.map((o, idx) => `
+      <div class="opportunity ${o.level}" draggable="true"
+        ondragstart="oppDragStart(event,${idx})"
+        ondragover="oppDragOver(event,${idx})"
+        ondrop="oppDrop(event,${idx})"
+        ondragend="oppDragEnd()">
+        <button class="opp-delete" onclick="deleteOpportunity('${o.id}')" title="Delete">✕</button>
+        <div class="opp-card">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="opp-drag-handle" title="Drag to reorder">⠿</span>
+            <select class="opp-level-select ${o.level}" onchange="updateOpp('${o.id}','level',this.value)">
+              <option value="high"${o.level==='high'?' selected':''}>HIGH</option>
+              <option value="medium"${o.level==='medium'?' selected':''}>MEDIUM</option>
+              <option value="low"${o.level==='low'?' selected':''}>LOW</option>
+            </select>
+          </div>
+          <div class="opp-title" contenteditable="true" spellcheck="false"
+            onblur="updateOpp('${o.id}','title',this.innerText.trim())"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+          >${escHtml(o.title)}</div>
+          <div class="opp-body" contenteditable="true" spellcheck="false"
+            onblur="updateOpp('${o.id}','body',this.innerText.trim())"
+          >${escHtml(o.body)}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  function addOpportunity() {
+    const opps = getOpportunities();
+    const id = 'o' + Date.now();
+    opps.push({ id, level: 'medium', title: 'New opportunity', body: '' });
+    saveOpportunities(opps);
+    renderOpportunities();
+    // focus the title of the new card
+    const cards = document.querySelectorAll('.opp-title');
+    if (cards.length) {
+      const last = cards[cards.length - 1];
+      last.focus();
+      const range = document.createRange();
+      range.selectNodeContents(last);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+    }
+  }
+
+  function deleteOpportunity(id) {
+    const opps = getOpportunities().filter(o => o.id !== id);
+    saveOpportunities(opps);
+    renderOpportunities();
+  }
+
+  function updateOpp(id, field, val) {
+    const opps = getOpportunities();
+    const o = opps.find(x => x.id === id);
+    if (!o) return;
+    o[field] = val;
+    saveOpportunities(opps);
+    if (field === 'level') renderOpportunities(); // re-render to update color
+  }
+
+  function oppDragStart(e, idx) {
+    oppDragSrcIdx = idx;
+    e.dataTransfer.effectAllowed = 'move';
+  }
+  function oppDragOver(e, idx) {
+    e.preventDefault();
+    document.querySelectorAll('.opportunity').forEach((el, i) => el.classList.toggle('drag-over-opp', i === idx && idx !== oppDragSrcIdx));
+  }
+  function oppDrop(e, idx) {
+    e.preventDefault();
+    if (oppDragSrcIdx === null || oppDragSrcIdx === idx) return;
+    const opps = getOpportunities();
+    const [moved] = opps.splice(oppDragSrcIdx, 1);
+    opps.splice(idx, 0, moved);
+    saveOpportunities(opps);
+    oppDragSrcIdx = null;
+    renderOpportunities();
+  }
+  function oppDragEnd() {
+    oppDragSrcIdx = null;
+    document.querySelectorAll('.opportunity').forEach(el => el.classList.remove('drag-over-opp'));
+  }
+
+  // ─── What's Missing ─────────────────────────────────────
+  function getMissingList() {
+    try { return JSON.parse(localStorage.getItem('cr-missing-list') || '[]'); } catch(e) { return []; }
+  }
+  function saveMissingList(items) {
+    localStorage.setItem('cr-missing-list', JSON.stringify(items));
+  }
+
+  function renderMissingItems() {
+    const el = document.getElementById('missing-items-list');
+    if (!el) return;
+    const items = getMissingList();
+    if (!items.length) {
+      el.innerHTML = `<div class="empty"><div class="icon">🔍</div><p>No items yet. Click + Add item to start.</p></div>`;
+      return;
+    }
+    el.innerHTML = items.map(item => `
+      <div class="missing-item" data-id="${item.id}">
+        <button class="missing-item-del" onclick="deleteMissingItem('${item.id}')" title="Delete">✕</button>
+        <div class="missing-item-text" contenteditable="true" spellcheck="false"
+          onblur="saveMissingItemText('${item.id}', this.innerText.trim())"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.blur()}"
+        >${escHtml(item.text)}</div>
+        <div class="missing-item-meta">${fmtDate(item.ts)}</div>
+      </div>`).join('');
+  }
+
+  function addMissingItem() {
+    const items = getMissingList();
+    const id = 'm' + Date.now();
+    items.push({ id, text: '', ts: Date.now() });
+    saveMissingList(items);
+    renderMissingItems();
+    // focus the new item
+    const all = document.querySelectorAll('.missing-item-text');
+    if (all.length) {
+      const last = all[all.length - 1];
+      last.focus();
+    }
+  }
+
+  function deleteMissingItem(id) {
+    saveMissingList(getMissingList().filter(x => x.id !== id));
+    renderMissingItems();
+  }
+
+  function saveMissingItemText(id, text) {
+    const items = getMissingList();
+    const item = items.find(x => x.id === id);
+    if (!item || item.text === text) return;
+    item.text = text;
+    item.ts = Date.now();
+    saveMissingList(items);
+    // update date label without full re-render
+    const el = document.querySelector(`.missing-item[data-id="${id}"] .missing-item-meta`);
+    if (el) el.textContent = fmtDate(item.ts);
+  }
+
+  // ─── Helpers ─────────────────────────────────────────────
+  function fmtTs(ts) {
+    if (!ts) return '—';
+    return new Date(ts).toLocaleString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function fmtDate(ts) {
+    if (!ts) return '—';
+    return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+
+  // ─── Competitor Detail — inline editing helpers ──────────
+  function saveDetailField(id, field, val) {
+    const c = competitors.find(x => x.id === id);
+    if (!c || c[field] === val) return;
+    c[field] = val;
+    c.updatedAt = Date.now();
+    localStorage.setItem('cr-competitors', JSON.stringify(competitors));
+    const tsEl = document.getElementById('updated-ts-' + id);
+    if (tsEl) tsEl.textContent = fmtTs(c.updatedAt);
+  }
+
+
+  function getMissing(cid) {
+    return localStorage.getItem('cr-missing-' + cid) || '';
+  }
+  function saveMissing(cid, val) {
+    localStorage.setItem('cr-missing-' + cid, val);
+  }
+
+  function featuresHTML(id) {
+    const c = competitors.find(x => x.id === id);
+    if (!c || !(c.features || []).length) return '<span style="font-size:13px;color:var(--muted)">No features yet.</span>';
+    return (c.features).map((f, i) => `
+      <span class="feature-pill" style="display:inline-flex;align-items:center;gap:4px">
+        ${escHtml(f)}
+        <button onclick="removeFeature('${id}',${i})" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:11px;line-height:1;padding:0;opacity:0.5" title="Remove">×</button>
+      </span>`).join('');
+  }
+
+  function addFeature(id, inputEl) {
+    const val = inputEl.value.trim();
+    if (!val) return;
+    const c = competitors.find(x => x.id === id);
+    if (!c) return;
+    if (!c.features) c.features = [];
+    if (!c.features.includes(val)) {
+      c.features.push(val);
+      c.updatedAt = Date.now();
+      localStorage.setItem('cr-competitors', JSON.stringify(competitors));
+      document.getElementById('features-' + id).innerHTML = featuresHTML(id);
+    }
+    inputEl.value = '';
+  }
+
+  function removeFeature(id, idx) {
+    const c = competitors.find(x => x.id === id);
+    if (!c) return;
+    c.features.splice(idx, 1);
+    c.updatedAt = Date.now();
+    localStorage.setItem('cr-competitors', JSON.stringify(competitors));
+    document.getElementById('features-' + id).innerHTML = featuresHTML(id);
+  }
+
+  // ─── Matrix mirror for competitor detail ────────────────
+  function detailMatrixHTML(cid) {
+    const data = getMxData();
+    const { rows, cells } = data;
+    if (!rows.length) return '';
+    const rows2 = rows.map(row => {
+      const val = (cells[row.id] || {})[cid] || '';
+      // count how many other competitors have ✓ for this row
+      const othersCount = competitors.filter(c => c.id !== cid && (cells[row.id] || {})[c.id] === '✓').length;
+      const badge = othersCount > 0 ? `<span style="font-size:10px;color:var(--muted);margin-left:6px">${othersCount} other${othersCount>1?'s':''}</span>` : '';
+      return `<tr>
+        <td style="font-size:13px">${escHtml(row.name)}</td>
+        <td style="text-align:center">
+          <div class="mx-cell ${val==='✓'?'v':val==='✗'?'x':val?'text':''}"
+            onclick="mxCellClick('${row.id}','${cid}',this)"
+            title="Click to select"
+          >${escHtml(val)}</div>
+        </td>
+        <td>${badge}</td>
+      </tr>`;
+    }).join('');
+    const collapsed = localStorage.getItem('cr-mx-collapsed-' + cid) === '1';
+    return `<div style="margin-bottom:20px" id="detail-mx-wrap-${cid}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${collapsed?'0':'10px'};cursor:pointer"
+        onclick="toggleDetailMatrix('${cid}')">
+        <h3 style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin:0;display:flex;align-items:center;gap:6px">
+          <span id="detail-mx-arrow-${cid}" style="font-size:9px;transition:transform 0.15s;display:inline-block;transform:${collapsed?'rotate(-90deg)':'rotate(0deg)'}"">▾</span>
+          Feature Matrix
+        </h3>
+        <a href="#" onclick="event.stopPropagation();event.preventDefault();showPage('matrix',null)" style="font-size:11px;color:var(--accent-blue);text-decoration:none">Edit full matrix →</a>
+      </div>
+      <div id="detail-mx-body-${cid}" style="display:${collapsed?'none':'block'}">
+        <div class="table-wrap" style="margin:0">
+          <table>
+            <thead><tr><th>Feature</th><th style="text-align:center">Status</th><th>Others</th></tr></thead>
+            <tbody>${rows2}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  function toggleDetailMatrix(cid) {
+    const body = document.getElementById('detail-mx-body-' + cid);
+    const arrow = document.getElementById('detail-mx-arrow-' + cid);
+    const header = body && body.previousElementSibling;
+    if (!body) return;
+    const collapsed = body.style.display === 'none';
+    body.style.display = collapsed ? 'block' : 'none';
+    if (arrow) arrow.style.transform = collapsed ? 'rotate(0deg)' : 'rotate(-90deg)';
+    if (header) header.style.marginBottom = collapsed ? '10px' : '0';
+    localStorage.setItem('cr-mx-collapsed-' + cid, collapsed ? '0' : '1');
+  }
+
+  // ─── Competitor Detail Page ──────────────────────────────
+  function openDetail(id) {
+    const c = competitors.find(x => x.id === id);
+    if (!c) return;
+    const logo = getLogo(c);
+    const imgs = getImages(id);
+    const imgHTML = imgs.map(img => galleryItemHTML(img, id)).join('');
+
+    document.getElementById('detail-page-content').innerHTML = `
+      <div class="detail-hero">
+        <div class="detail-hero-top">
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
+              ${logo ? `<img src="${logo}" width="28" height="28" style="border-radius:6px;object-fit:contain;flex-shrink:0" onerror="this.style.display='none'" />` : ''}
+              <h1 contenteditable="true" spellcheck="false" data-placeholder="Competitor name"
+                style="margin:0;outline:none;min-width:60px"
+                onblur="saveDetailField('${id}','name',this.innerText.trim())"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+              >${escHtml(c.name)}</h1>
+              ${c.updatedAt ? `<span style="font-size:11px;color:var(--muted);font-weight:400">edited ${fmtDate(c.updatedAt)}</span>` : ''}
+              <select class="badge-select ${c.strength}" id="strength-sel-${id}"
+                onchange="saveDetailField('${id}','strength',this.value);this.className='badge-select '+this.value">
+                <option value="strong"${c.strength==='strong'?' selected':''}>strong</option>
+                <option value="moderate"${c.strength==='moderate'?' selected':''}>moderate</option>
+                <option value="weak"${c.strength==='weak'?' selected':''}>weak</option>
+              </select>
+            </div>
+            <div contenteditable="true" spellcheck="false" data-placeholder="Add a positioning statement..."
+              style="font-size:13px;color:var(--muted);outline:none;line-height:1.6"
+              onblur="saveDetailField('${id}','positioning',this.innerText.trim())"
+            >${escHtml(c.positioning || '')}</div>
+          </div>
+          <div class="detail-hero-actions" style="flex-shrink:0">
+            <a id="visit-btn-${id}" href="${c.website || '#'}" target="_blank" class="btn" style="text-decoration:none;font-size:13px"${!c.website?' hidden':''}>↗ Visit</a>
+          </div>
+        </div>
+
+        <div contenteditable="true" spellcheck="false" data-placeholder="Add a description..."
+          style="font-size:14px;color:var(--muted);line-height:1.7;outline:none;margin:16px 0 0"
+          onblur="saveDetailField('${id}','desc',this.innerText.trim())"
+        >${escHtml(c.desc || '')}</div>
+
+        <div class="detail-meta-grid" style="margin-top:20px">
+          <div class="detail-meta-item">
+            <div class="key">Product</div>
+            <div class="val" contenteditable="true" spellcheck="false" data-placeholder="—" style="outline:none"
+              onblur="saveDetailField('${id}','product',this.innerText.trim())"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+            >${escHtml(c.product || '')}</div>
+          </div>
+          <div class="detail-meta-item">
+            <div class="key">Website</div>
+            <div class="val" contenteditable="true" spellcheck="false" data-placeholder="https://..." style="outline:none"
+              onblur="saveDetailField('${id}','website',this.innerText.trim());const a=document.getElementById('visit-btn-${id}');if(a){a.href=this.innerText.trim();a.hidden=!this.innerText.trim()}"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+            >${escHtml(c.website || '')}</div>
+          </div>
+          <div class="detail-meta-item">
+            <div class="key">Pricing</div>
+            <div class="val" contenteditable="true" spellcheck="false" data-placeholder="—" style="outline:none"
+              onblur="saveDetailField('${id}','pricing',this.innerText.trim())"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+            >${escHtml(c.pricing || '')}</div>
+          </div>
+          <div class="detail-meta-item">
+            <div class="key">Rev Share</div>
+            <div class="val" contenteditable="true" spellcheck="false" data-placeholder="—" style="outline:none"
+              onblur="saveDetailField('${id}','revShare',this.innerText.trim())"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+            >${escHtml(c.revShare || '')}</div>
+          </div>
+          <div class="detail-meta-item">
+            <div class="key">Free Trial</div>
+            <div class="val" contenteditable="true" spellcheck="false" data-placeholder="—" style="outline:none"
+              onblur="saveDetailField('${id}','freeTrial',this.innerText.trim())"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+            >${escHtml(c.freeTrial || '')}</div>
+          </div>
+          <div class="detail-meta-item">
+            <div class="key">Apps</div>
+            <div class="val" contenteditable="true" spellcheck="false" data-placeholder="—" style="outline:none"
+              onblur="saveDetailField('${id}','apps',this.innerText.trim())"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+            >${escHtml(c.apps || '')}</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;display:flex;gap:16px">
+          <span>Added ${fmtDate(c.createdAt)}</span>
+          ${c.updatedAt ? `<span id="updated-ts-${id}">Updated ${fmtDate(c.updatedAt)}</span>` : ''}
+        </div>
+      </div>
+
+      <div class="detail-sections">
+        <div class="detail-box">
+          <h3>Key Features</h3>
+          <div id="features-${id}">${featuresHTML(id)}</div>
+          <input placeholder="+ add feature" style="border:none;background:transparent;font-family:inherit;font-size:12px;color:var(--muted);outline:none;width:100%;margin-top:8px"
+            onkeydown="if(event.key==='Enter'&&this.value.trim()){addFeature('${id}',this);event.preventDefault()}" />
+        </div>
+        <div class="detail-box" style="border-left:3px solid var(--accent3)">
+          <h3 style="color:var(--accent3)">What's Missing</h3>
+          <div contenteditable="true" spellcheck="false" data-placeholder="Note gaps, missing data, things to research..."
+            style="font-size:13px;color:var(--text);line-height:1.7;outline:none;min-height:44px"
+            onblur="saveMissing('${id}',this.innerText.trim())"
+          >${escHtml(getMissing(id))}</div>
+        </div>
+      </div>
+
+      <div class="info-boxes-section">
+        <div class="section-header">
+          <h3>Notes & Sections</h3>
+          <button class="btn" style="font-size:12px" onclick="addInfoBox('${id}')">+ Add section</button>
+        </div>
+        <div id="info-boxes-${id}">${infoBoxesHTML(id)}</div>
+      </div>
+
+      ${commentsHTML(id)}
+
+      <div class="gallery-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <h3 style="margin:0">Screenshots & Images (${imgs.length})</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <div id="cimg-filter-tag-${id}" class="tag-filter-pills">
+              ${getAllTags(id).map(tag => `<button class="tag-filter-chip" data-tag="${tag}" onclick="toggleTagFilter(this,'${id}','comp')">#${tag}</button>`).join('')}
+            </div>
+            <select id="cimg-filter-date-${id}" onchange="filterCompetitorImages('${id}')"
+              style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:5px 8px;font-family:inherit">
+              <option value="">All dates</option>
+              <option value="today">Today</option>
+              <option value="week">This week</option>
+              <option value="month">This month</option>
+            </select>
+          </div>
+        </div>
+        <div class="gallery-grid" id="cimg-grid-${id}">${imgHTML}</div>
+        <div class="upload-zone" id="upload-zone-${id}" style="margin-top:${imgs.length ? '12px' : '0'}"
+          onclick="document.getElementById('img-input-${id}').click()"
+          ondragover="event.preventDefault();this.classList.add('drag-over')"
+          ondragleave="this.classList.remove('drag-over')"
+          ondrop="handleDrop(event,'${id}')">
+          <div class="icon">+</div>
+          <div>Drop screenshots here or <strong>click to upload</strong></div>
+          <div style="font-size:11px;margin-top:4px;opacity:.6">PNG, JPG, GIF — any size</div>
+        </div>
+        <input type="file" id="img-input-${id}" accept="image/*" multiple style="display:none"
+          onchange="handleFileInput(this,'${id}')" />
+      </div>
+
+      <div style="position:sticky;bottom:0;margin-top:40px;padding:12px 0;border-top:1px solid var(--border);text-align:right;background:var(--bg)">
+        <button onclick="deleteCompetitor('${id}')"
+          style="background:none;border:1px solid rgba(224,62,62,0.3);color:var(--accent3);border-radius:6px;padding:7px 16px;font-size:13px;cursor:pointer;font-family:inherit">
+          Delete competitor
+        </button>
+      </div>`;
+
+    showPage('competitor-detail', null);
+
+    // populate sticky bar
+    const stickyBar = document.getElementById('detail-sticky-bar');
+    const stickyName = document.getElementById('detail-sticky-name');
+    const stickyLogo = document.getElementById('detail-sticky-logo');
+    stickyBar.classList.remove('visible');
+    if (stickyName) stickyName.textContent = c.name;
+    if (stickyLogo) { stickyLogo.src = logo || ''; stickyLogo.style.display = logo ? 'block' : 'none'; }
+
+    // show sticky bar when hero scrolls out of view
+    if (window._detailHeroObserver) window._detailHeroObserver.disconnect();
+    setTimeout(() => {
+      const hero = document.querySelector('#detail-page-content .detail-hero-top');
+      if (!hero) return;
+      window._detailHeroObserver = new IntersectionObserver(([entry]) => {
+        stickyBar.classList.toggle('visible', !entry.isIntersecting);
+      }, { root: document.querySelector('main'), threshold: 0 });
+      window._detailHeroObserver.observe(hero);
+    }, 50);
+  }
+
+  function savePositioning(id, val) {
+    const c = competitors.find(x => x.id === id);
+    if (!c) return;
+    c.positioning = val;
+    c.updatedAt = Date.now();
+    localStorage.setItem('cr-competitors', JSON.stringify(competitors));
+  }
+
+  function deleteCompetitor(id) {
+    if (!confirm('Delete this competitor?')) return;
+    competitors = competitors.filter(c => c.id !== id);
+    localStorage.removeItem('cr-imgs-' + id);
+    localStorage.removeItem('cr-cnote-' + id);
+    save();
+    showPage('competitors', document.querySelector('nav a[onclick*=competitors]'));
+    renderCompetitors();
+
+  }
+
+  // ─── Gallery item HTML (shared) ─────────────────────────
+  function galleryItemHTML(img, storageKey) {
+    const isTopic = storageKey.startsWith('topic-');
+    // Resolve src for mirrored images
+    const imgSrc = img.mirrored
+      ? (getImages(img.srcKey).find(i => i.id === img.srcImgId) || {}).src || null
+      : img.src;
+    const taggedIds = img.competitorIds || [];
+
+    // send to competitor — only shown in topic galleries
+    const sendToHTML = isTopic ? (() => {
+      const options = competitors.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      return `<select class="gi-select" onchange="sendImageToCompetitor('${img.id}','${storageKey}',this.value,this)" onclick="event.stopPropagation()">
+        <option value="">→ send to…</option>${options}
+      </select>`;
+    })() : '';
+
+    // competitor tag selector — only shown in topic galleries
+    const competitorTagHTML = isTopic ? (() => {
+      const taggedCid = taggedIds[0] || null;
+      const taggedComp = taggedCid ? competitors.find(x => x.id === taggedCid) : null;
+      const options = competitors.map(c =>
+        `<option value="${c.id}"${taggedCid === c.id ? ' selected' : ''}>${c.name}</option>`
+      ).join('');
+      return `<select class="gi-select" onchange="tagCompetitorToImage('${img.id}','${storageKey}',this.value)" onclick="event.stopPropagation()"
+        style="color:${taggedComp ? 'var(--text)' : 'var(--muted)'}">
+        <option value="">— competitor</option>${options}
+      </select>`;
+    })() : '';
+
+    const tagPills = (img.tags || []).map(t =>
+      `<span class="gi-tag-pill">#${escHtml(t)}</span>`
+    ).join('');
+
+    return `
+      <div class="gallery-item" draggable="true" data-img-id="${img.id}" data-storage-key="${storageKey}"
+        ondragstart="dragStart(event)"
+        ondragover="dragOver(event)"
+        ondrop="dragDrop(event)"
+        ondragend="dragEnd(event)">
+        <div class="drag-handle">⠿</div>
+        <button class="gallery-item-check" onclick="toggleBulkSelect(event,'${img.id}','${storageKey}')">✓</button>
+        ${imgSrc
+          ? `<img src="${imgSrc}" alt="${img.name || ''}" onclick="openLightbox('${img.id}','${storageKey}')" />`
+          : `<div style="width:100%;height:220px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);background:var(--surface2)">Image removed</div>`}
+        ${img.mirrored ? `<div class="mirror-badge">↗ mirror</div>` : ''}
+        <button class="gallery-item-del" onclick="deleteImage(event,'${img.id}','${storageKey}')">✕</button>
+
+        <div class="gallery-item-caption">
+          <input class="gi-name" value="${(img.name || '').replace(/"/g, '&quot;')}" placeholder="Untitled"
+            oninput="updateImageName('${img.id}','${storageKey}',this.value)"
+            onclick="event.stopPropagation()" />
+
+          <textarea class="gi-note" rows="1" placeholder="Note…"
+            oninput="updateImageNote('${img.id}','${storageKey}',this.value)"
+            onclick="event.stopPropagation()"
+          >${img.note || ''}</textarea>
+
+          <div class="gi-tags" id="img-taglist-${img.id}">
+            ${(img.tags || []).map(tag => `
+              <span class="img-tag">#${escHtml(tag)}
+                <button onclick="removeImageTag('${img.id}','${storageKey}','${tag.replace(/'/g,"\\'")}')">✕</button>
+              </span>`).join('')}
+            <input class="tag-input gi-tag-input" placeholder="+ tag" id="tag-input-${img.id}"
+              list="cr-tag-ac" autocomplete="off"
+              onfocus="refreshTagAc()"
+              onkeydown="if(event.key==='Enter'||event.key===','){event.preventDefault();addImageTag('${img.id}','${storageKey}',this)}"
+              onblur="addImageTag('${img.id}','${storageKey}',this)" />
+          </div>
+
+          ${competitorTagHTML || sendToHTML
+            ? `<div style="display:flex;gap:8px;flex-wrap:wrap">${competitorTagHTML}${sendToHTML}</div>`
+            : ''}
+        </div>
+      </div>`;
+  }
+
+  function tagCompetitorToImage(imgId, storageKey, competitorId) {
+    const imgs = getImages(storageKey);
+    const img = imgs.find(i => i.id === imgId);
+    if (!img) return;
+
+    // Clean up previous auto-mirror from old competitor
+    const oldCid = (img.competitorIds || [])[0];
+    if (oldCid && img.autoMirrorId) {
+      let old = getImages(oldCid);
+      old = old.filter(i => i.id !== img.autoMirrorId);
+      saveImages(oldCid, old);
+      img.autoMirrorId = null;
+    }
+
+    // Only 1 competitor per image — replace instead of append
+    img.competitorIds = competitorId ? [competitorId] : [];
+
+    // Auto-mirror to competitor gallery with topic name as tag
+    if (competitorId && storageKey.startsWith('topic-')) {
+      const topicId = storageKey.replace('topic-', '');
+      const topic = (topics || []).find(t => String(t.id) === String(topicId));
+      const topicTag = (topic ? topic.name : 'research').toLowerCase();
+      const now = Date.now();
+      const autoMirrorId = 'am-' + now + '-' + imgId;
+      const compImgs = getImages(competitorId);
+      compImgs.push({
+        id: autoMirrorId,
+        mirrored: true, srcKey: storageKey, srcImgId: imgId,
+        competitorIds: [],
+        name: img.name || '',
+        note: img.note || '',
+        tags: [...new Set([...(img.tags || []), topicTag])],
+        ts: now
+      });
+      saveImages(competitorId, compImgs);
+      img.autoMirrorId = autoMirrorId;
+    }
+
+    saveImages(storageKey, imgs);
+    // re-render gallery item in place
+    const el = document.querySelector(`[data-img-id="${imgId}"]`);
+    if (el) el.outerHTML = galleryItemHTML(img, storageKey);
+  }
+
+  function untagCompetitorFromImage(imgId, storageKey, competitorId) {
+    const imgs = getImages(storageKey);
+    const img = imgs.find(i => i.id === imgId);
+    if (!img) return;
+    img.competitorIds = (img.competitorIds || []).filter(id => id !== competitorId);
+    saveImages(storageKey, imgs);
+    const el = document.querySelector(`[data-img-id="${imgId}"]`);
+    if (el) el.outerHTML = galleryItemHTML(img, storageKey);
+  }
+
+  // ─── Image tags ──────────────────────────────────────────
+  function addImageTag(imgId, storageKey, inputEl) {
+    // split on commas only — spaces are allowed within a tag
+    const words = inputEl.value.trim().toLowerCase().split(/,+/).map(s => s.trim()).filter(Boolean);
+    if (!words.length) return;
+    const imgs = getImages(storageKey);
+    const img = imgs.find(i => i.id === imgId);
+    if (!img) return;
+    if (!img.tags) img.tags = [];
+    const list = document.getElementById('img-taglist-' + imgId);
+    words.forEach(val => {
+      if (img.tags.includes(val)) return;
+      img.tags.push(val);
+      if (list) {
+        const chip = document.createElement('span');
+        chip.className = 'img-tag';
+        chip.innerHTML = `#${escHtml(val)} <button onclick="removeImageTag('${imgId}','${storageKey}','${val.replace(/'/g,"\\'")}')">✕</button>`;
+        list.insertBefore(chip, inputEl);
+      }
+    });
+    saveImages(storageKey, imgs);
+    inputEl.value = '';
+  }
+
+  function removeImageTag(imgId, storageKey, tag) {
+    const imgs = getImages(storageKey);
+    const img = imgs.find(i => i.id === imgId);
+    if (!img) return;
+    img.tags = (img.tags || []).filter(t => t !== tag);
+    saveImages(storageKey, imgs);
+    const el = document.querySelector(`[data-img-id="${imgId}"]`);
+    if (el) el.outerHTML = galleryItemHTML(img, storageKey);
+  }
+
+  // Collect all unique tags across a storage key
+  function getAllTags(storageKey) {
+    const imgs = getImages(storageKey);
+    return [...new Set(imgs.flatMap(i => i.tags || []))].sort();
+  }
+
+  function refreshTagAc() {
+    const dl = document.getElementById('cr-tag-ac');
+    if (!dl) return;
+    const tags = Object.keys(getAllTagsGlobal()).sort();
+    dl.innerHTML = tags.map(t => `<option value="${escHtml(t)}">`).join('');
+  }
+
+  // ─── Images ──────────────────────────────────────────────
+  function getImages(cid) {
+    return JSON.parse(localStorage.getItem('cr-imgs-' + cid) || '[]');
+  }
+
+  function saveImages(cid, imgs) {
+    localStorage.setItem('cr-imgs-' + cid, JSON.stringify(imgs));
+  }
+
+  function handleFileInput(input, cid) {
+    [...input.files].forEach(f => readImageFile(f, cid));
+    input.value = '';
+  }
+
+  function handleDrop(e, cid) {
+    e.preventDefault();
+    document.getElementById('upload-zone-' + cid).classList.remove('drag-over');
+    [...e.dataTransfer.files].filter(f => f.type.startsWith('image/')).forEach(f => readImageFile(f, cid));
+  }
+
+  // pending image queue for source picker
+  let _pendingImages = [];
+
+  function readImageFile(file, cid) {
+    const defaultName = file.name.replace(/\.[^.]+$/, '');
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 1200;
+        const scale = img.width > MAX ? MAX / img.width : 1;
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        const src = canvas.toDataURL('image/jpeg', 0.82);
+
+        if (cid.startsWith('topic-')) {
+          // show source picker for topic uploads
+          _pendingImages.push({ src, defaultName, cid });
+          if (_pendingImages.length === 1) showNextSourcePicker();
+        } else {
+          // competitor pages: save directly
+          saveImageDirect({ src, name: defaultName, cid, competitorIds: [], customSource: '' });
+          openDetail(cid);
+        }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function saveImageDirect({ src, name, cid, competitorIds, customSource }) {
+    const imgs = getImages(cid);
+    imgs.push({
+      id: Date.now().toString(),
+      src,
+      name,
+      note: '',
+      ts: Date.now(),
+      competitorIds: competitorIds || [],
+      customSource: customSource || '',
+    });
+    try {
+      saveImages(cid, imgs);
+    } catch (err) {
+      alert('Storage full — try deleting some images first.');
+    }
+  }
+
+  function showNextSourcePicker() {
+    if (!_pendingImages.length) return;
+    const { src, defaultName } = _pendingImages[0];
+
+    // populate competitor dropdown
+    const sel = document.getElementById('img-source-competitor');
+    sel.innerHTML = '<option value="">None / custom</option>' +
+      competitors.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    sel.value = '';
+
+    document.getElementById('img-source-name').value = defaultName;
+    document.getElementById('img-source-custom').value = '';
+    document.getElementById('img-source-thumb').src = src;
+    document.getElementById('img-source-overlay').classList.add('open');
+    document.getElementById('img-source-name').focus();
+  }
+
+  function syncSourceInput(competitorId) {
+    // clear custom if a competitor is chosen
+    if (competitorId) document.getElementById('img-source-custom').value = '';
+  }
+
+  function confirmImageSource() {
+    if (!_pendingImages.length) return;
+    const { src, cid } = _pendingImages.shift();
+    const name = document.getElementById('img-source-name').value.trim() || 'Untitled';
+    const competitorId = document.getElementById('img-source-competitor').value;
+    const customSource = document.getElementById('img-source-custom').value.trim();
+
+    saveImageDirect({
+      src,
+      name,
+      cid,
+      competitorIds: competitorId ? [competitorId] : [],
+      customSource,
+    });
+
+    document.getElementById('img-source-overlay').classList.remove('open');
+
+    if (_pendingImages.length) {
+      // next image in queue
+      setTimeout(showNextSourcePicker, 150);
+    } else {
+      // re-render topic page
+      const topicId = cid.replace('topic-', '');
+      openTopic(topicId, null);
+    }
+  }
+
+  function cancelImageSource() {
+    _pendingImages = [];
+    document.getElementById('img-source-overlay').classList.remove('open');
+  }
+
+  function deleteImage(e, imgId, cid) {
+    e.stopPropagation();
+    if (!confirm('Remove this image?')) return;
+    const imgs = getImages(cid).filter(i => i.id !== imgId);
+    saveImages(cid, imgs);
+    openDetail(cid);
+  }
+
+  function updateImageNote(imgId, cid, val) {
+    const imgs = getImages(cid);
+    const img = imgs.find(i => i.id === imgId);
+    if (img) { img.note = val; saveImages(cid, imgs); }
+  }
+
+  function updateImageCustomSource(imgId, storageKey, val) {
+    const imgs = getImages(storageKey);
+    const img = imgs.find(i => i.id === imgId);
+    if (img) { img.customSource = val; saveImages(storageKey, imgs); }
+  }
+
+  function updateImageName(imgId, cid, val) {
+    const imgs = getImages(cid);
+    const img = imgs.find(i => i.id === imgId);
+    if (img) { img.name = val; saveImages(cid, imgs); }
+  }
+
+  // ─── Opportunities storage ───────────────────────────────
+  function getOpportunities() {
+    return JSON.parse(localStorage.getItem('cr-opportunities') || '[]');
+  }
+  function saveOpportunities(list) {
+    localStorage.setItem('cr-opportunities', JSON.stringify(list));
+  }
+
+  // ─── Image drag-and-drop reorder ────────────────────────
+  let dragSrcId = null;
+  let dragStorageKey = null;
+  let oppDragSrcIdx = null;
+
+  function dragStart(e) {
+    const el = e.currentTarget;
+    dragSrcId = el.dataset.imgId;
+    dragStorageKey = el.dataset.storageKey;
+    el.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  }
+
+  function dragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const el = e.currentTarget;
+    if (el.dataset.imgId !== dragSrcId) el.classList.add('drag-over-item');
+  }
+
+  function dragDrop(e) {
+    e.preventDefault();
+    const targetEl = e.currentTarget;
+    const targetId = targetEl.dataset.imgId;
+    const key = dragStorageKey;
+    if (!dragSrcId || dragSrcId === targetId || targetEl.dataset.storageKey !== key) return;
+
+    const imgs = getImages(key);
+    const srcIdx = imgs.findIndex(i => i.id === dragSrcId);
+    const tgtIdx = imgs.findIndex(i => i.id === targetId);
+    if (srcIdx === -1 || tgtIdx === -1) return;
+
+    const [moved] = imgs.splice(srcIdx, 1);
+    imgs.splice(tgtIdx, 0, moved);
+    saveImages(key, imgs);
+
+    // re-render just the grid without full page reload
+    const grid = targetEl.closest('.gallery-grid');
+    if (grid) grid.innerHTML = imgs.map(img => galleryItemHTML(img, key)).join('');
+  }
+
+  function dragEnd(e) {
+    e.currentTarget.classList.remove('dragging');
+    document.querySelectorAll('.gallery-item').forEach(el => el.classList.remove('drag-over-item'));
+    dragSrcId = null;
+    dragStorageKey = null;
+  }
+
+  // ─── Timestamped comments ────────────────────────────────
+  function getComments(key) {
+    return JSON.parse(localStorage.getItem('cr-comments-' + key) || '[]');
+  }
+
+  function saveComments(key, comments) {
+    localStorage.setItem('cr-comments-' + key, JSON.stringify(comments));
+  }
+
+  function commentsHTML(key) {
+    const comments = getComments(key);
+    const items = comments.map(c => `
+      <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:4px">
+        <div style="font-size:13px;line-height:1.55;white-space:pre-wrap">${escHtml(c.text)}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span class="ts">${fmtTs(c.ts)}</span>
+          <button onclick="deleteComment('${c.id}','${key}')"
+            style="background:none;border:none;font-size:11px;color:var(--muted);cursor:pointer;padding:0">Delete</button>
+        </div>
+      </div>`).join('');
+
+    return `
+      <div class="inline-note" style="margin-bottom:24px">
+        <h3>Notes &amp; Comments</h3>
+        <div id="comments-list-${key}" style="${comments.length ? 'margin-bottom:12px' : ''}">${items}</div>
+        <div style="display:flex;gap:8px;align-items:flex-end">
+          <textarea id="comment-input-${key}" placeholder="Add a note..."
+            style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:13px;padding:10px 12px;resize:vertical;min-height:60px;outline:none;"
+            onkeydown="if((e=event).key==='Enter'&&(e.metaKey||e.ctrlKey))addComment('${key}')"></textarea>
+          <button class="btn-primary" style="margin-bottom:0;padding:10px 14px;font-size:13px" onclick="addComment('${key}')">Add</button>
+        </div>
+        <div class="ts" style="margin-top:6px">⌘↵ or Ctrl+↵ to submit</div>
+      </div>`;
+  }
+
+  function addComment(key) {
+    const input = document.getElementById('comment-input-' + key);
+    const text = input.value.trim();
+    if (!text) return;
+    const comments = getComments(key);
+    comments.push({ id: Date.now().toString(), text, ts: Date.now() });
+    saveComments(key, comments);
+    input.value = '';
+    // re-render just the comments area
+    const listEl = document.getElementById('comments-list-' + key);
+    const newHTML = comments.map(c => `
+      <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:4px">
+        <div style="font-size:13px;line-height:1.55;white-space:pre-wrap">${escHtml(c.text)}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span class="ts">${fmtTs(c.ts)}</span>
+          <button onclick="deleteComment('${c.id}','${key}')"
+            style="background:none;border:none;font-size:11px;color:var(--muted);cursor:pointer;padding:0">Delete</button>
+        </div>
+      </div>`).join('');
+    if (listEl) { listEl.innerHTML = newHTML; listEl.style.marginBottom = '12px'; }
+  }
+
+  function deleteComment(commentId, key) {
+    const comments = getComments(key).filter(c => c.id !== commentId);
+    saveComments(key, comments);
+    const listEl = document.getElementById('comments-list-' + key);
+    const newHTML = comments.map(c => `
+      <div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:4px">
+        <div style="font-size:13px;line-height:1.55;white-space:pre-wrap">${escHtml(c.text)}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span class="ts">${fmtTs(c.ts)}</span>
+          <button onclick="deleteComment('${c.id}','${key}')"
+            style="background:none;border:none;font-size:11px;color:var(--muted);cursor:pointer;padding:0">Delete</button>
+        </div>
+      </div>`).join('');
+    if (listEl) listEl.innerHTML = newHTML;
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ─── Lightbox ────────────────────────────────────────────
+  let _lbImages = [], _lbIdx = 0;
+
+  function openLightbox(imgId, cid) {
+    const allImgs = getImages(cid).filter(i => {
+      const src = i.mirrored ? (getImages(i.srcKey).find(x => x.id === i.srcImgId) || {}).src : i.src;
+      return !!src;
+    });
+    _lbImages = allImgs.map(i => ({ ...i, _cid: cid }));
+    _lbIdx = _lbImages.findIndex(i => i.id === imgId);
+    if (_lbIdx < 0) _lbIdx = 0;
+    _showLightboxFrame();
+    document.getElementById('lightbox').classList.add('open');
+  }
+
+  function _showLightboxFrame() {
+    const img = _lbImages[_lbIdx];
+    if (!img) return;
+    const src = img.mirrored ? (getImages(img.srcKey).find(x => x.id === img.srcImgId) || {}).src : img.src;
+    document.getElementById('lightbox-img').src = src || '';
+    document.getElementById('lightbox-caption').textContent = (img.name || '') + (img.note ? ' — ' + img.note : '') + (img.ts ? '  ·  ' + fmtDate(img.ts) : '');
+    const tagsEl = document.getElementById('lightbox-tags');
+    tagsEl.innerHTML = (img.tags || []).map(t => `<span class="lightbox-tag">#${escHtml(t)}</span>`).join('');
+    const counter = document.getElementById('lb-counter');
+    counter.textContent = _lbImages.length > 1 ? `${_lbIdx + 1} / ${_lbImages.length}` : '';
+    document.getElementById('lb-prev').style.display = _lbImages.length > 1 ? '' : 'none';
+    document.getElementById('lb-next').style.display = _lbImages.length > 1 ? '' : 'none';
+  }
+
+  function lbNav(dir) {
+    _lbIdx = (_lbIdx + dir + _lbImages.length) % _lbImages.length;
+    _showLightboxFrame();
+  }
+
+  function lbBgClick(e) {
+    if (e.target === document.getElementById('lightbox')) closeLightbox();
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+    _lbImages = []; _lbIdx = 0;
+  }
+
+  // ─── Add Form ───────────────────────────────────────────
+  function openForm() {
+    document.getElementById('form-overlay').classList.add('open');
+  }
+
+  function closeFormOverlay(e) {
+    if (e.target === document.getElementById('form-overlay')) closeForm();
+  }
+
+  function closeForm() {
+    document.getElementById('form-overlay').classList.remove('open');
+    ['f-name','f-product','f-website','f-desc','f-pricing','f-features','f-position','f-revshare'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('f-edit-id').value = '';
+    document.getElementById('f-mobile').checked = false;
+    document.getElementById('f-saas').checked = false;
+    document.getElementById('f-marketplace').checked = false;
+    document.getElementById('f-strength').value = 'moderate';
+    document.getElementById('form-title').textContent = 'Add Competitor';
+    document.getElementById('form-submit-btn').textContent = 'Save Competitor';
+  }
+
+  function openEditForm(id) {
+    const c = competitors.find(x => x.id === id);
+    if (!c) return;
+    document.getElementById('f-edit-id').value = id;
+    document.getElementById('f-name').value = c.name || '';
+    document.getElementById('f-product').value = c.product || '';
+    document.getElementById('f-website').value = c.website || '';
+    document.getElementById('f-desc').value = c.desc || '';
+    document.getElementById('f-pricing').value = c.pricing || '';
+    document.getElementById('f-strength').value = c.strength || 'moderate';
+    document.getElementById('f-mobile').checked = (c.markets || []).includes('mobile');
+    document.getElementById('f-saas').checked = (c.markets || []).includes('saas');
+    document.getElementById('f-marketplace').checked = (c.markets || []).includes('marketplace');
+    document.getElementById('f-features').value = (c.features || []).join(', ');
+    document.getElementById('f-position').value = c.positioning || '';
+    document.getElementById('f-revshare').value = c.revShare || '';
+    document.getElementById('form-title').textContent = 'Edit Competitor';
+    document.getElementById('form-submit-btn').textContent = 'Save Changes';
+    document.getElementById('form-overlay').classList.add('open');
+  }
+
+  function saveCompetitorForm() {
+    const name = document.getElementById('f-name').value.trim();
+    if (!name) { alert('Company name is required.'); return; }
+
+    const markets = [];
+    if (document.getElementById('f-mobile').checked) markets.push('mobile');
+    if (document.getElementById('f-saas').checked) markets.push('saas');
+    if (document.getElementById('f-marketplace').checked) markets.push('marketplace');
+
+    const features = document.getElementById('f-features').value
+      .split(',').map(s => s.trim()).filter(Boolean);
+
+    const editId = document.getElementById('f-edit-id').value;
+    const now = Date.now();
+
+    if (editId) {
+      // update existing
+      const idx = competitors.findIndex(x => x.id === editId);
+      if (idx === -1) return;
+      competitors[idx] = {
+        ...competitors[idx],
+        name,
+        product: document.getElementById('f-product').value.trim(),
+        website: document.getElementById('f-website').value.trim(),
+        desc: document.getElementById('f-desc').value.trim(),
+        pricing: document.getElementById('f-pricing').value.trim(),
+        strength: document.getElementById('f-strength').value,
+        markets,
+        features,
+        positioning: document.getElementById('f-position').value.trim(),
+        revShare: document.getElementById('f-revshare').value.trim(),
+        updatedAt: now,
+      };
+      save();
+      closeForm();
+      openDetail(editId);
+      renderCompetitors();
+  
+    } else {
+      // create new
+      const c = {
+        id: now.toString(),
+        name,
+        product: document.getElementById('f-product').value.trim(),
+        website: document.getElementById('f-website').value.trim(),
+        desc: document.getElementById('f-desc').value.trim(),
+        pricing: document.getElementById('f-pricing').value.trim(),
+        strength: document.getElementById('f-strength').value,
+        markets,
+        features,
+        positioning: document.getElementById('f-position').value.trim(),
+        revShare: document.getElementById('f-revshare').value.trim(),
+        createdAt: now,
+        updatedAt: now,
+      };
+      competitors.push(c);
+      save();
+      closeForm();
+      renderCompetitors();
+  
+    }
+  }
+
+  // ─── Research Topics ────────────────────────────────────
+  let topics = JSON.parse(localStorage.getItem('cr-topics') || 'null');
+  // remove any pre-seeded default topics (t1–t5)
+  if (topics) {
+    const defaultIds = new Set(['t1','t2','t3','t4','t5']);
+    const cleaned = topics.filter(t => !defaultIds.has(t.id));
+    if (cleaned.length !== topics.length) { topics = cleaned; saveTopics(); }
+  }
+  if (!topics) { topics = []; saveTopics(); }
+
+  function saveTopics() { localStorage.setItem('cr-topics', JSON.stringify(topics)); }
+
+  function renderTopicsNav() {
+    document.getElementById('topics-nav').innerHTML = topics.map(t =>
+      `<a href="#" onclick="openTopic('${t.id}',this)" style="padding-left:28px">
+        ${t.icon} ${t.name}
+      </a>`
+    ).join('');
+  }
+
+  function toggleTopicForm() {
+    const form = document.getElementById('new-topic-form');
+    const input = document.getElementById('new-topic-input');
+    const isHidden = form.style.display === 'none';
+    form.style.display = isHidden ? 'block' : 'none';
+    // make sure the section is expanded
+    if (isHidden) {
+      const group = document.getElementById('sec-topics');
+      const label = group?.previousElementSibling;
+      if (group) { group.classList.remove('collapsed'); }
+      if (label) { label.classList.remove('collapsed'); }
+      collapsedSections.delete('sec-topics');
+      localStorage.setItem('cr-collapsed', JSON.stringify([...collapsedSections]));
+      setTimeout(() => input?.focus(), 50);
+    }
+  }
+
+  function submitNewTopic() {
+    const input = document.getElementById('new-topic-input');
+    const name = (input?.value || '').trim();
+    if (!name) return;
+    const icons = ['📌','🔬','📊','💡','🗂️','⚙️','🌐','📱','🛒'];
+    const icon = icons[topics.length % icons.length];
+    const t = { id: 't' + Date.now(), icon, name, createdAt: Date.now() };
+    topics.push(t);
+    saveTopics();
+    input.value = '';
+    document.getElementById('new-topic-form').style.display = 'none';
+    renderTopicsNav();
+    openTopic(t.id, null);
+  }
+
+  function openTopic(id, navEl) {
+    const t = topics.find(x => x.id === id);
+    if (!t) return;
+
+
+    const imgs = getImages('topic-' + id);
+    const updatedAt = localStorage.getItem('cr-tupdated-' + id);
+
+    const imgHTML = imgs.map(img => galleryItemHTML(img, 'topic-' + id)).join('');
+
+    const topicCompIds = t.competitorIds || [];
+    const relatedHTML = topicCompIds.map(cid => {
+      const c = competitors.find(x => x.id === cid);
+      if (!c) return '';
+      const logo = getLogo(c);
+      return `<span style="display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 10px 4px 6px;font-size:12px;cursor:pointer" onclick="openDetail('${c.id}')">
+        ${logo ? `<img src="${logo}" width="14" height="14" style="border-radius:3px" onerror="this.style.display='none'" />` : ''}
+        ${c.name}
+        <button onclick="event.stopPropagation();untagCompetitorFromTopic('${id}','${cid}')" style="background:none;border:none;cursor:pointer;padding:0;margin-left:2px;font-size:11px;color:var(--muted)">✕</button>
+      </span>`;
+    }).join('');
+
+    const competitorOptions = competitors.map(c =>
+      `<option value="${c.id}"${topicCompIds.includes(c.id) ? ' disabled' : ''}>${c.name}</option>`
+    ).join('');
+
+    document.getElementById('topic-page-content').innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:28px">${t.icon}</span>
+          <div>
+            <h1 style="margin:0">${t.name}</h1>
+            <div class="ts">Created ${fmtTs(t.createdAt)}${updatedAt ? ' · Updated ' + fmtTs(Number(updatedAt)) : ''}</div>
+          </div>
+        </div>
+        <button class="btn-secondary" style="font-size:12px;padding:6px 12px;color:var(--accent3);border-color:var(--accent3)" onclick="deleteTopic('${id}')">Delete topic</button>
+      </div>
+
+      <div class="detail-box" style="margin-bottom:20px">
+        <h3>Related Competitors</h3>
+        <div id="topic-comp-tags-${id}" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;min-height:24px">
+          ${relatedHTML || '<span style="font-size:13px;color:var(--muted)">None tagged yet</span>'}
+        </div>
+        <select onchange="tagCompetitorToTopic('${id}',this.value);this.value=''"
+          style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:7px 10px;font-family:inherit">
+          <option value="">+ Tag a competitor...</option>
+          ${competitorOptions}
+        </select>
+      </div>
+
+      ${commentsHTML('topic-' + id)}
+
+      <div class="gallery-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <h3 style="margin:0">Screenshots & Images (${imgs.length})</h3>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button class="btn" style="font-size:12px" onclick="openMirrorPicker('${id}')">↗ Pull from competitor</button>
+            <div id="img-filter-tag-${id}" class="tag-filter-pills">
+              ${getAllTags('topic-' + id).map(tag => `<button class="tag-filter-chip" data-tag="${tag}" onclick="toggleTagFilter(this,'${id}','topic')">#${tag}</button>`).join('')}
+            </div>
+            <select id="img-filter-competitor-${id}" onchange="filterTopicImages('${id}')"
+              style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:5px 8px;font-family:inherit">
+              <option value="">All competitors</option>
+              ${competitors.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+            </select>
+            <select id="img-filter-date-${id}" onchange="filterTopicImages('${id}')"
+              style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:5px 8px;font-family:inherit">
+              <option value="">All dates</option>
+              <option value="today">Today</option>
+              <option value="week">This week</option>
+              <option value="month">This month</option>
+            </select>
+          </div>
+        </div>
+        <div class="gallery-grid" id="topic-gallery-grid-${id}">
+          ${imgHTML || ''}
+        </div>
+        <div class="upload-zone" style="margin-top:${imgs.length ? '12px' : '0'}"
+          onclick="document.getElementById('timg-input-${id}').click()"
+          ondragover="event.preventDefault();this.classList.add('drag-over')"
+          ondragleave="this.classList.remove('drag-over')"
+          ondrop="handleDrop(event,'topic-${id}')">
+          <div class="icon">🖼️</div>
+          <div>Drop screenshots here or <strong>click to upload</strong></div>
+          <div style="font-size:11px;margin-top:4px;opacity:.7">PNG, JPG, GIF</div>
+        </div>
+        <input type="file" id="timg-input-${id}" accept="image/*" multiple style="display:none"
+          onchange="handleFileInput(this,'topic-${id}')" />
+      </div>`;
+
+    if (navEl) {
+      document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+      navEl.classList.add('active');
+    }
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('topic-page').classList.add('active');
+  }
+
+  function tagCompetitorToTopic(topicId, competitorId) {
+    if (!competitorId) return;
+    const t = topics.find(x => x.id === topicId);
+    if (!t) return;
+    if (!t.competitorIds) t.competitorIds = [];
+    if (t.competitorIds.includes(competitorId)) return;
+    t.competitorIds.push(competitorId);
+    saveTopics();
+
+    // auto-import only tagged images from the competitor's gallery
+    const competitorImgs = getImages(competitorId).filter(i => i.tags && i.tags.length > 0);
+    if (competitorImgs.length) {
+      const storageKey = 'topic-' + topicId;
+      const topicImgs = getImages(storageKey);
+      const existingSrcs = new Set(topicImgs.map(i => i.src));
+      let added = 0;
+      competitorImgs.forEach(img => {
+        if (existingSrcs.has(img.src)) return;
+        topicImgs.push({
+          ...img,
+          id: Date.now().toString() + Math.random().toString(36).slice(2),
+          competitorIds: [competitorId],
+          ts: img.ts || Date.now(),
+        });
+        added++;
+      });
+      if (added) {
+        try { saveImages(storageKey, topicImgs); } catch (e) {}
+      }
+    }
+
+    openTopic(topicId, null);
+  }
+
+  function untagCompetitorFromTopic(topicId, competitorId) {
+    const t = topics.find(x => x.id === topicId);
+    if (!t) return;
+    t.competitorIds = (t.competitorIds || []).filter(id => id !== competitorId);
+    saveTopics();
+    openTopic(topicId, null);
+  }
+
+  function toggleTagFilter(el, id, type) {
+    el.classList.toggle('active');
+    if (type === 'comp') filterCompetitorImages(id);
+    else filterTopicImages(id);
+  }
+
+  function filterCompetitorImages(cid) {
+    const tagContainer = document.getElementById('cimg-filter-tag-' + cid);
+    const activeTags = tagContainer
+      ? [...tagContainer.querySelectorAll('.tag-filter-chip.active')].map(el => el.dataset.tag)
+      : [];
+    const dateFilter = document.getElementById('cimg-filter-date-' + cid)?.value || '';
+    let imgs = getImages(cid);
+
+    if (activeTags.length) imgs = imgs.filter(img => activeTags.some(t => (img.tags || []).includes(t)));
+    if (dateFilter) {
+      const now = Date.now();
+      const ms = { today: 86400000, week: 604800000, month: 2592000000 };
+      imgs = imgs.filter(img => img.ts >= now - ms[dateFilter]);
+    }
+
+    const grid = document.getElementById('cimg-grid-' + cid);
+    if (grid) grid.innerHTML = imgs.map(img => galleryItemHTML(img, cid)).join('') ||
+      '<div style="padding:20px;color:var(--muted);font-size:13px">No images match the filters.</div>';
+  }
+
+  function filterTopicImages(topicId) {
+    const tagContainer = document.getElementById('img-filter-tag-' + topicId);
+    const activeTags = tagContainer
+      ? [...tagContainer.querySelectorAll('.tag-filter-chip.active')].map(el => el.dataset.tag)
+      : [];
+    const competitorFilter = document.getElementById('img-filter-competitor-' + topicId)?.value || '';
+    const dateFilter     = document.getElementById('img-filter-date-' + topicId)?.value || '';
+    const storageKey = 'topic-' + topicId;
+    let imgs = getImages(storageKey);
+
+    if (activeTags.length) imgs = imgs.filter(img => activeTags.some(t => (img.tags || []).includes(t)));
+    if (competitorFilter) imgs = imgs.filter(img => (img.competitorIds || []).includes(competitorFilter));
+    if (dateFilter) {
+      const now = Date.now();
+      const ms = { today: 86400000, week: 604800000, month: 2592000000 };
+      imgs = imgs.filter(img => img.ts >= now - ms[dateFilter]);
+    }
+
+    const grid = document.getElementById('topic-gallery-grid-' + topicId);
+    if (grid) grid.innerHTML = imgs.map(img => galleryItemHTML(img, storageKey)).join('') ||
+      '<div style="padding:20px;color:var(--muted);font-size:13px">No images match the filters.</div>';
+  }
+
+  function deleteTopic(id) {
+    if (!confirm('Delete this topic and all its images?')) return;
+    topics = topics.filter(t => t.id !== id);
+    saveTopics();
+    localStorage.removeItem('cr-tnote-' + id);
+    localStorage.removeItem('cr-tupdated-' + id);
+    localStorage.removeItem('cr-imgs-topic-' + id);
+    renderTopicsNav();
+    showPage('competitors', document.querySelector('nav a[onclick*=competitors]'));
+  }
+
+  // ─── Export / Import ────────────────────────────────────
+  function exportData() {
+    const data = {
+      competitors,
+      notes: {
+        general: localStorage.getItem('cr-note-general') || ''
+      }
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `competitor-research-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+  }
+
+  function importData(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data.competitors) {
+          competitors = data.competitors;
+          save();
+        }
+        if (data.notes) {
+          Object.entries(data.notes).forEach(([k, v]) => localStorage.setItem('cr-note-' + k, v));
+        }
+    
+        alert('Import successful — ' + (data.competitors || []).length + ' competitors loaded.');
+      } catch {
+        alert('Invalid JSON file.');
+      }
+    };
+    reader.readAsText(file);
+    input.value = '';
+  }
+
+  // ─── Tag Search ─────────────────────────────────────────
+  function getAllImagesWithMeta() {
+    const all = [];
+    // from competitors
+    competitors.forEach(c => {
+      getImages(c.id).forEach(img => {
+        all.push({ img, source: 'competitor', sourceId: c.id, sourceName: c.name, sourceLogo: getLogo(c) });
+      });
+    });
+    // from topics
+    topics.forEach(t => {
+      getImages('topic-' + t.id).forEach(img => {
+        all.push({ img, source: 'topic', sourceId: t.id, sourceName: t.icon + ' ' + t.name, sourceLogo: null });
+      });
+    });
+    return all;
+  }
+
+  function getAllTagsGlobal() {
+    const tagMap = {}; // tag -> count
+    getAllImagesWithMeta().forEach(({ img }) => {
+      (img.tags || []).forEach(tag => { tagMap[tag] = (tagMap[tag] || 0) + 1; });
+    });
+    return tagMap;
+  }
+
+  function renderTagSearch(selectedTag) {
+    const query = (document.getElementById('tag-search-input')?.value || '').trim().toLowerCase();
+    const tagMap = getAllTagsGlobal();
+    const allTags = Object.entries(tagMap).sort((a, b) => b[1] - a[1]); // sort by count
+
+    // tag cloud
+    const filtered = query ? allTags.filter(([t]) => t.includes(query)) : allTags;
+    const cloudHTML = filtered.length
+      ? filtered.map(([tag, count]) => {
+          const active = tag === selectedTag;
+          return `<span onclick="searchByTag('${tag}')"
+            style="display:inline-flex;align-items:center;gap:4px;background:${active ? '#6d28d9' : '#ede9fe'};color:${active ? '#fff' : '#6d28d9'};
+            border-radius:20px;padding:5px 12px;font-size:12px;font-weight:500;margin:3px;cursor:pointer;transition:all .15s"
+            onmouseover="if('${tag}'!=='${selectedTag||''}')this.style.background='#ddd6fe'"
+            onmouseout="if('${tag}'!=='${selectedTag||''}')this.style.background='#ede9fe'">
+            #${escHtml(tag)} <span style="opacity:.6;font-size:11px">${count}</span>
+          </span>`;
+        }).join('')
+      : `<span style="font-size:13px;color:var(--muted)">No tags found.</span>`;
+
+    const cloud = document.getElementById('all-tags-cloud');
+    if (cloud) cloud.innerHTML = cloudHTML;
+
+    // results
+    if (selectedTag) {
+      searchByTag(selectedTag);
+    } else if (query && filtered.length === 1) {
+      searchByTag(filtered[0][0]);
+    } else {
+      const results = document.getElementById('tag-search-results');
+      if (results) results.innerHTML = filtered.length && !query
+        ? `<p style="font-size:13px;color:var(--muted)">Click a tag above to see all matching images.</p>`
+        : '';
+    }
+  }
+
+  function searchByTag(tag) {
+    // update input if not already set
+    const input = document.getElementById('tag-search-input');
+    if (input && !input.value) input.value = tag;
+
+    const matches = getAllImagesWithMeta().filter(({ img }) => (img.tags || []).includes(tag));
+
+    // group by source
+    const groups = {};
+    matches.forEach(m => {
+      const key = m.source + ':' + m.sourceId;
+      if (!groups[key]) groups[key] = { ...m, imgs: [] };
+      groups[key].imgs.push(m.img);
+    });
+
+    const resultsEl = document.getElementById('tag-search-results');
+    if (!resultsEl) return;
+
+    if (!matches.length) {
+      resultsEl.innerHTML = `<div class="empty"><div class="icon">🏷️</div><p>No images tagged <strong>#${escHtml(tag)}</strong>.</p></div>`;
+      return;
+    }
+
+    resultsEl.innerHTML = `
+      <div style="font-size:13px;font-weight:600;margin-bottom:16px;color:var(--muted)">
+        ${matches.length} image${matches.length !== 1 ? 's' : ''} tagged <strong style="color:var(--text)">#${escHtml(tag)}</strong>
+      </div>
+      ${Object.values(groups).map(g => {
+        const logo = g.sourceLogo ? `<img src="${g.sourceLogo}" width="16" height="16" style="border-radius:3px;vertical-align:middle;margin-right:4px" onerror="this.style.display='none'" />` : '';
+        const thumbs = g.imgs.map(img => `
+          <div style="position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--border);cursor:pointer;background:var(--surface2)"
+            onclick="${g.source === 'competitor' ? `openDetail('${g.sourceId}')` : `openTopic('${g.sourceId}',null)`}">
+            <img src="${img.src}" style="width:100%;height:130px;object-fit:cover;display:block" />
+            <div style="padding:6px 8px;font-size:11px">
+              <div style="font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${img.name || 'Untitled'}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:2px;margin-top:3px">
+                ${(img.tags||[]).map(t => `<span style="background:${t===tag?'#6d28d9':'#ede9fe'};color:${t===tag?'#fff':'#6d28d9'};border-radius:20px;padding:1px 6px;font-size:10px">#${escHtml(t)}</span>`).join('')}
+              </div>
+              <div class="ts" style="margin-top:3px">${fmtDate(img.ts)}</div>
+            </div>
+          </div>`).join('');
+
+        return `
+          <div style="margin-bottom:28px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-weight:600;font-size:14px">
+              ${logo}${escHtml(g.sourceName)}
+              <span style="font-size:12px;font-weight:400;color:var(--muted)">${g.imgs.length} image${g.imgs.length!==1?'s':''}</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px">
+              ${thumbs}
+            </div>
+          </div>`;
+      }).join('')}`;
+
+    // re-render cloud with active tag highlighted
+    renderTagSearch(tag);
+  }
+
+  // ─── Global Search ──────────────────────────────────────
+  function globalSearch(q) {
+    const box = document.getElementById('global-results');
+    if (!q.trim()) { box.innerHTML = ''; box.style.display = 'none'; return; }
+    box.style.display = 'block';
+    const matches = competitors.filter(c =>
+      c.name.toLowerCase().includes(q.toLowerCase()) ||
+      (c.desc || '').toLowerCase().includes(q.toLowerCase()) ||
+      (c.positioning || '').toLowerCase().includes(q.toLowerCase()) ||
+      (c.features || []).some(f => f.toLowerCase().includes(q.toLowerCase()))
+    );
+    if (matches.length === 0) {
+      box.innerHTML = `<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px;">No results for "${q}"</div>`;
+      return;
+    }
+    box.innerHTML = matches.map(c => {
+      const tags = '';
+      return `<div onclick="document.getElementById('global-search').value='';document.getElementById('global-results').style.display='none';openDetail('${c.id}');"
+        style="padding:12px 16px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;"
+        onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600;color:var(--text)">${c.name}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">${c.positioning || c.desc || ''}</div>
+        </div>
+        <div style="display:flex;gap:4px">${tags}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ─── Seed research data (runs once) ────────────────────
+  (function seedData() {
+    if (localStorage.getItem('cr-seeded')) return;
+    const seed = [
+      {
+        id: '1',
+        name: 'Shopify App Store',
+        product: 'Shopify App Store',
+        website: 'https://apps.shopify.com',
+        desc: '17,761+ apps across 5.6M active stores. Most mature app marketplace with Built for Shopify certification, AI-driven discovery via Sidekick, and self-serve developer ads.',
+        pricing: '$29–$299/mo (platform)',
+        strength: 'strong',
+        markets: ['marketplace'],
+        features: ['Built for Shopify badge', 'AI recommendations (Sidekick)', 'Self-serve developer ads', 'Sponsored apps row', 'Editorial collections', 'Seasonal promotions', 'In-context upsell', 'Free trial standard (45% of apps)', 'Subscription & loyalty apps', 'Fulfillment & fraud apps'],
+        positioning: 'The dominant ecommerce app ecosystem — quality-certified, AI-powered discovery, strong developer economics under $1M',
+        rating: '',
+        revShare: '100% under $1M → 85%'
+      },
+      {
+        id: '2',
+        name: 'Apple App Store',
+        product: 'App Store',
+        website: 'https://apps.apple.com',
+        desc: '1.8M+ apps on 1.5B+ devices. $1.1T developer billings (2022). Editorial-driven discovery with Today Tab, In-App Events, and Editors\' Choice badges.',
+        pricing: 'Free → paid; 15–30% rev share',
+        strength: 'strong',
+        markets: ['mobile'],
+        features: ['Today Tab editorial features', 'App of the Day / Game of the Day', 'In-App Events', 'Search Ads', 'Editors\' Choice badge', 'Promotional artwork banners', 'Small dev 15% rev share'],
+        positioning: 'Premium editorial-driven mobile marketplace; quality signals and editorial placement drive discovery',
+        rating: '',
+        revShare: '85% small dev → 70%'
+      },
+      {
+        id: '3',
+        name: 'Google Play',
+        product: 'Google Play Store',
+        website: 'https://play.google.com',
+        desc: '2.6M+ apps on 3B+ Android devices. ~$47B revenue (2023). Algorithmic-first discovery with personalized home feed, promotional content tools, and editorial collections.',
+        pricing: 'Free → paid; 15–30% rev share',
+        strength: 'strong',
+        markets: ['mobile'],
+        features: ['Personalized home feed', 'Editors\' Choice badge', 'Seasonal editorial collections', 'Promotional Content (dev-controlled)', 'Top Charts', 'New + Updated badges', 'Small dev 15% rev share'],
+        positioning: 'Algorithmic-first, developer-controlled promotional tools; scale-driven discovery on Android',
+        rating: '',
+        revShare: '85% first $1M → 70%'
+      },
+      {
+        id: '4',
+        name: 'Slack App Directory',
+        product: 'Slack Marketplace / AgentExchange',
+        website: 'https://slack.com/apps',
+        desc: '2,886 apps. 52M registered users / 47M DAU. $180M from integrations (2025). Recently rebranded to Salesforce AgentExchange — pivoting entire marketplace strategy toward AI agents.',
+        pricing: '$7.25–$12.50/user/mo',
+        strength: 'strong',
+        markets: ['saas'],
+        features: ['HR & Team Culture category', 'Security apps (140+)', 'DevOps integrations', 'CRM connectors', 'Workflow automation', 'AI agent platform (AgentExchange)', 'Sidekick in-product recommendations'],
+        positioning: 'Repositioning from integration directory to AI agent platform under Salesforce umbrella',
+        rating: '',
+        revShare: 'N/A — independent pricing'
+      },
+      {
+        id: '5',
+        name: 'Webflow Marketplace',
+        product: 'Webflow Marketplace',
+        website: 'https://webflow.com/marketplace',
+        desc: '500K+ sites on platform. 3.5M designers/teams. $200–500M platform revenue. Combines apps, libraries, certified partners, templates, and Made in Webflow showcases.',
+        pricing: '$19–$49/mo (workspace)',
+        strength: 'moderate',
+        markets: ['saas', 'marketplace'],
+        features: ['Apps, Libraries, Certified Partners', 'Templates', 'Made in Webflow', 'HubSpot integration', 'Mailchimp', 'Google Analytics', 'Airtable', 'Zapier'],
+        positioning: 'Designer-first marketplace blending functional apps with design assets; developer-heavy, SMB/agency focused',
+        rating: '',
+        revShare: 'Not public'
+      },
+      {
+        id: '6',
+        name: 'Notion Integration Gallery',
+        product: 'Notion Integrations',
+        website: 'https://www.notion.com/integrations',
+        desc: '255 integrations (~150 curated). 100M+ users. Bundled with platform tiers. Now leads featured section with own AI Connectors — reducing third-party app visibility.',
+        pricing: '$10–$24/user/mo',
+        strength: 'moderate',
+        markets: ['saas'],
+        features: ['AI Connectors (featured)', 'Jira integration', 'GitHub integration', 'GitLab', 'PagerDuty', 'Zapier', 'Make', 'Manual curation + security review gate', 'Left-rail category filter'],
+        positioning: 'Curated integration gallery as retention/stickiness play; shifting toward first-party AI connectors',
+        rating: '',
+        revShare: 'N/A — no rev share'
+      },
+      {
+        id: '7',
+        name: 'Framer Marketplace',
+        product: 'Framer Marketplace',
+        website: 'https://www.framer.com/marketplace',
+        desc: '2,000+ templates, 60+ plugins. $6.5M paid to creators (2025). 100% revenue to creators — zero platform cut. Design-asset-first model.',
+        pricing: '$49–$199 (templates)',
+        strength: 'moderate',
+        markets: ['saas', 'marketplace'],
+        features: ['Templates (2,000+)', 'Plugins (60+)', 'Components', 'Vectors', 'SEO plugins', 'AI content plugins', 'Forms', 'Shopify storefront', 'Analytics', 'Creator profile pages', '100% rev to creators'],
+        positioning: 'Creator-economy marketplace — zero platform fee, design-asset-first, editorial homepage with Featured section',
+        rating: '',
+        revShare: '100% to creators'
+      }
+    ];
+    const existing = JSON.parse(localStorage.getItem('cr-competitors') || '[]');
+    if (existing.length === 0) {
+      const now = Date.now();
+      seed.forEach(s => { s.createdAt = now; s.updatedAt = now; });
+      localStorage.setItem('cr-competitors', JSON.stringify(seed));
+      competitors = seed;
+    }
+    // Seed notes
+    if (!localStorage.getItem('cr-note-general')) {
+      localStorage.setItem('cr-note-general', `App Marketplace Competitive Analysis — April 2026
+Research goals: Feature benchmarking · Strategy & positioning · Optimization
+
+KEY FINDINGS:
+• Shopify App Store is the clear leader: 17,761 apps vs Wix's 1,283 — but Wix's smaller catalog is a curation advantage if discovery improves
+• Slack has rebranded its entire marketplace as Salesforce AgentExchange — full pivot to AI agents
+• Notion now leads its featured section with first-party AI Connectors, pushing third-party apps down
+• Framer is the only platform with 0% revenue share — creator-economy model
+• Shopify's "Sponsored apps" row is a monetization surface Wix doesn't have
+• Wix uniquely shows discount badges (–70%) on app cards — no other platform does this`);
+    }
+    if (!localStorage.getItem('cr-note-marketplace')) {
+      localStorage.setItem('cr-note-marketplace', `SHOPIFY ADVANTAGES WIX LACKS:
+1. Built for Shopify (BFS) quality certification badge → drives homepage + category placement
+2. Self-serve developer ads (BFS-only): homepage banner, category hero, search — targetable by merchant plan/device
+3. Sidekick AI: recommends apps in-product at relevant moments ("set up email marketing")
+4. Sponsored apps row on homepage
+5. In-App Events equivalent (seasonal/live event cards in listings)
+
+WIX UNIQUE:
+• Discount tags on app cards (–70%, –10%) — no other platform does this
+• "Wix Choice" badges visible
+• Year-1 100% revenue share (Shopify matches this under $1M, permanently)
+
+GAPS TO CLOSE:
+• No quality certification / badge program
+• No self-serve dev promotion tools
+• No AI-driven in-product app recommendations
+• No seasonal/event promotional layouts`);
+    }
+    localStorage.setItem('cr-seeded', '1');
+  })();
+
+  // ─── Seed screen research notes (runs once) ─────────────
+  (function seedScreens() {
+    if (localStorage.getItem('cr-seeded-screens')) return;
+    const base = 1745395200000; // April 23 2026
+    function note(key, entries) {
+      const existing = JSON.parse(localStorage.getItem('cr-comments-' + key) || '[]');
+      if (existing.length) return; // don't overwrite user notes
+      const comments = entries.map((text, i) => ({ id: String(base + i * 60000), text, ts: base + i * 60000 }));
+      localStorage.setItem('cr-comments-' + key, JSON.stringify(comments));
+    }
+
+    // Shopify App Store (id: '1')
+    note('1', [
+      `🏠 HOME SCREEN\nThe homepage opens with a search bar and a dropdown menu of 7 top categories. Below that it rotates through curated sections: "Built for Shopify" picks, Popular Apps, "In the Spotlight" (newer/trending), and a "Made by Shopify" row of their own tools. Each section shows 6–12 app cards in a grid with a "view all" link.`,
+
+      `🔍 SEARCH & BROWSE RESULTS\nWhen you browse a category (e.g. Marketing), there are subcategory filter tabs across the top — Advertising, Email, Checkout, Customer Loyalty, etc. Apps appear in a multi-column grid, grouped into subsections. ~12 apps shown per subsection, then "view all" to expand. No sidebar filters — all navigation is top-tab.`,
+
+      `📦 APP CARD\nEach card shows: app icon → app name (bold) → star rating + number of reviews → pricing label ("Free to install" / "Free plan available") → one-line description → "Built for Shopify" badge on certified apps. Clean, scannable. Pricing and social proof front and center.`,
+
+      `📄 APP DETAIL PAGE\nLayout from top to bottom:\n1. Header — icon, name, stars, review count, pricing, big Install button, developer name\n2. Screenshot carousel (usually 4 images, with arrows and dot indicators)\n3. Description with "show more" toggle\n4. Feature list by category (expandable)\n5. Pricing table — usually 4 tiers, with "Free" tier clearly visible\n6. Reviews — aggregate bar chart, AI-generated summary of merchant sentiment, 3 sample reviews\n7. Sidebar — developer contact, address, data access disclosure\n8. "More apps like this" row at the bottom\n\nStrong emphasis on social proof (reviews) and friction reduction (free plan, clear pricing).`
+    ]);
+
+    // Apple App Store (id: '2')
+    note('2', [
+      `🏠 HOME SCREEN (Today Tab)\nThe Today Tab is editorially curated — full-width story cards, App of the Day, Game of the Day, and themed collections ("Apps We Love Right Now"). Very visual and magazine-like. Discovery here is gated by Apple editors — you can't pay your way in.`,
+
+      `🔍 SEARCH RESULTS\nSearch results show a compact tile for each app: icon + name + subtitle + rating + Get button. The first 3 screenshots from the app's listing appear as a horizontal strip inside the tile — this is the most important visual real estate for any app. Top results dominate — very little scrolling.`,
+
+      `📦 APP CARD (in Browse/Explore)\nIn category browse views, apps appear as horizontal scrolling rows grouped by theme. Each card shows the app icon, name, and a short caption. Larger feature cards show a custom background image set by the developer.`,
+
+      `📄 APP DETAIL PAGE\nFrom top to bottom:\n1. Icon + name (30 chars max) + subtitle (30 chars) + rating + age rating + category\n2. Get/price button prominently placed\n3. Up to 3 short video previews (autoplay, muted)\n4. Screenshot strip — up to 10, shown at ~half size, tap to expand\n5. Description (first sentence is the most visible — it's the only line shown without tapping)\n6. "What's New" section for recent updates\n7. Ratings & Reviews (star breakdown, user reviews, developer responses)\n8. In-App Purchases list (if any)\n9. Information table — developer, size, compatibility, languages\n\nApple-designed pages feel premium and consistent. Developers have limited layout control — everything is templated.`
+    ]);
+
+    // Google Play (id: '3')
+    note('3', [
+      `🏠 HOME SCREEN\nPersonalized feed — Google's algorithm surfaces apps based on your device history and behavior. Sections like "Suggested for you", "Top free apps", "Top grossing", and editorial "Editor's Choice" picks. Feature graphic (wide banner image) is prominent for featured apps. Very algorithmic — not editorially curated like Apple.`,
+
+      `🔍 SEARCH RESULTS (2024 redesign)\nAs of Jan 2024, search results switched to a dense list format — no install button shown in search. Each result shows: icon + name + rating (stars + number) + short description. Users tap to go to the detail page to install. This reduced impulse installs but cleaned up the layout.`,
+
+      `📦 APP CARD\nIn browse/category views, apps are shown in a card grid. Each card: icon + name + rating. Top Charts use a numbered list format. "Editors' Choice" cards have a distinctive badge and larger feature image.`,
+
+      `📄 APP DETAIL PAGE\nLayout:\n1. App name + icon + install button\n2. Feature graphic — a wide banner image (1024×500px) unique to Play Store\n3. Screenshot strip — portrait or landscape, scrollable\n4. Rating + review count + "Contains ads" / "In-app purchases" labels\n5. About section (description)\n6. Ratings breakdown with bar chart and review highlights\n7. Developer info\n8. "Similar apps" section\n\nMore information-dense than Apple. Feature graphic banner is a major differentiator — no equivalent on iOS.`
+    ]);
+
+    // Slack Marketplace (id: '4')
+    note('4', [
+      `🏠 HOME SCREEN\nOpens with a "Get Essential Apps" hero banner. Below that: Staff Picks divided into 3 groups — Featured, Essential, and New & Noteworthy. Then for each category, a "Top Picks" row showing 3 highlighted apps. Navigation is simple: category list on the left, search bar at the top.`,
+
+      `🔍 BROWSE / SEARCH RESULTS\nApp listing rows are intentionally minimal: app logo + app name + one-line description. No ratings. No pricing shown in the list. ~30 apps per page with pagination. The lean layout lets you scan a lot of apps quickly but gives very little detail upfront.`,
+
+      `📦 APP LISTING ROW (the "card")\nJust three things: a small square logo, the app name, and a single sentence about what it does. No rating, no price, no badges. Very stripped-back — relies on name recognition and the description to sell the click.`,
+
+      `📄 APP DETAIL PAGE\nClean, minimal layout:\n1. Large app logo + app name + developer\n2. Big "Add to Slack" or "Visit site to install" button\n3. Short description paragraph\n4. Screenshots (1600×1000px images, horizontal)\n5. Features list\n6. Permissions disclosure\n\nNo ratings or reviews shown — Slack removed the rating system. Discovery relies entirely on editorial curation and search.\n\nCategory breakdown: Productivity (1,335 apps), Communication (819), HR & Team Culture (653), Project Management (466), Developer Tools (448), Social & Fun (380).`
+    ]);
+
+    // Webflow Marketplace (id: '5')
+    note('5', [
+      `🏠 HOME SCREEN\nThe marketplace homepage mixes four types of content: Apps, Templates, Libraries, and Certified Partners. Each category is visually color-coded (blue, green, orange, pink, red, yellow). Max 1280px wide layout, centered. The design uses their own "WF Visual Sans" font which gives it a distinct branded look.`,
+
+      `🔍 BROWSE / SEARCH\nApps section has a category filter across the top. 304 apps total. Search is available but not the main entry point — browsing by category is emphasized. Layout switches to a tighter grid when filtering.`,
+
+      `📦 APP CARD\nEach app card shows a logo/icon, app name, and a short description. Color accent corresponds to the category. Hover states add a shadow lift effect. Cards feel more like a design system than a product listing.`,
+
+      `📄 APP DETAIL PAGE\nFocuses on integration depth: what data it connects, how it works inside Webflow, setup steps. Screenshots showing the app working inside the Webflow editor are common. Install button links out to the app's own site or Webflow's dashboard. Feels more developer/designer-focused than consumer-app-focused.`
+    ]);
+
+    // Notion Integrations (id: '6')
+    note('6', [
+      `🏠 HOME SCREEN\nNot really a marketplace — more of a feature landing page. The integrations homepage groups things into feature categories: Link Previews, Synced Databases, Automations, Security & Compliance. Each section shows 3–4 logos of partner tools. There's a "Browse integrations →" CTA that takes you to the full directory.`,
+
+      `🔍 FULL DIRECTORY (notion.com/integrations/all)\nThis is the closest thing to a browse screen. Multi-column responsive grid with 40+ cards. You can filter by category tags (Productivity, Engineering, Marketing, Automations, etc.) along the left side. Clean and understated — no featured or sponsored placements.`,
+
+      `📦 INTEGRATION CARD\nEach card shows: partner logo + integration name + one-line tagline + category tags. Some have a "Technology Partner" or "New" badge. No pricing shown, no ratings. The cards are informational rather than sales-y.`,
+
+      `📄 INTEGRATION DETAIL PAGE\nSome integrations link out to external partner pages, others have in-Notion detail pages. When there is a Notion detail page it shows: what the integration does, setup instructions, screenshots, a developer info section, and links to the developer's website and support. Notion doesn't have a standardized app page template — pages vary a lot in quality.`
+    ]);
+
+    // Framer Marketplace (id: '7')
+    note('7', [
+      `🏠 HOME SCREEN\nThe marketplace homepage highlights Featured templates and plugins with large thumbnail cards. There's an editorial "Featured" section curated by Framer's team. Category tabs across the top: Templates, Plugins, Components, Vectors. The overall look is very design-forward — rich previews, creator attribution, and a creator-economy vibe.`,
+
+      `🔍 BROWSE / FILTER\nBrowsing plugins at /marketplace/plugins/ shows a grid with category filter tabs: UI Kits, Assets, SEO, Forms, Analytics, etc. Items can be sorted by popularity or recency. Search is available at the top. The grid adjusts column count responsively.`,
+
+      `📦 PLUGIN / TEMPLATE CARD\nEach card shows a large preview thumbnail (often animated GIF), the item name, the creator's name, and a price or "Free" label. Rich visual previews are the main selling point — you can see what you're getting before clicking. Creator profiles are a first-class feature.`,
+
+      `📄 ITEM DETAIL PAGE\nSingle-item pages show: large preview images/video, description, creator profile with avatar and other items by that creator, price and install button, compatibility info, and user reviews. Pages feel like a designer's portfolio item, not a generic app listing. 100% revenue goes to the creator — the page reinforces that.`
+    ]);
+
+    localStorage.setItem('cr-seeded-screens', '1');
+  })();
+
+  // ─── Seed opportunities (runs once) ─────────────────────
+  (function seedOpportunities() {
+    if (localStorage.getItem('cr-seeded-opps')) return;
+    const existing = getOpportunities();
+    if (existing.length) { localStorage.setItem('cr-seeded-opps', '1'); return; }
+    const opps = [
+      { id: 'o1', level: 'high',   title: 'Quality certification badge program', body: 'Shopify\'s "Built for Shopify" badge drives homepage placement, category heroes, search rankings, and exclusive ad access. Wix has no equivalent. A Wix-certified badge could raise app quality AND give top developers a conversion incentive.' },
+      { id: 'o2', level: 'high',   title: 'Self-serve developer promotion tools', body: 'Shopify generates significant ad revenue from BFS-only placement products (homepage banner, category hero, search — targetable by merchant plan/device). Wix has no self-serve promotion surface for developers.' },
+      { id: 'o3', level: 'high',   title: 'AI-driven in-product app recommendations', body: 'Shopify\'s Sidekick surfaces app suggestions in-context (e.g. "set up email marketing"). Slack\'s Sidekick does the same. Wix has no equivalent. In-product recommendations at key user moments is a high-leverage surface.' },
+      { id: 'o4', level: 'medium', title: 'Catalog depth vs. curation advantage', body: 'Wix has 1,283 apps vs Shopify\'s 17,761. Rather than trying to match volume, Wix\'s smaller catalog is actually a curation advantage — but only if discovery improves with quality signals and editorial features.' },
+      { id: 'o5', level: 'medium', title: 'Seasonal and event promotional layouts', body: 'Apple (In-App Events), Google Play (Promotional Content), and Shopify all have seasonal/event promotion surfaces. Wix has no equivalent — these are low-cost, high-visibility tools that other platforms use heavily.' },
+      { id: 'o6', level: 'medium', title: 'Developer economics beyond year 1', body: 'Wix\'s year-1 100% rev share is strong, but drops to 80/20 ongoing. Shopify permanently offers 0% under $1M, and Framer offers 100% forever. Worth revisiting to improve long-term developer retention.' },
+      { id: 'o7', level: 'high',   title: 'Wix\'s unique discount badges — double down', body: 'Wix is the only platform showing discount badges (–70%, –10%) on app cards. This is a unique differentiator. Formalizing a promotions/sales system could drive installs and merchant engagement.' },
+      { id: 'o8', level: 'medium', title: 'Watch: Slack → Salesforce AgentExchange pivot', body: 'Slack has rebranded its entire marketplace around AI agents. Notion is prioritizing first-party AI connectors in its featured section. These are signals that AI agents are becoming the next battleground for app marketplaces.' },
+    ];
+    saveOpportunities(opps);
+    localStorage.setItem('cr-seeded-opps', '1');
+  })();
+
+  // ─── Mirror Picker ───────────────────────────────────────
+  let _mirrorTopicId = null;
+  let _mirrorSelected = new Set();
+
+  function openMirrorPicker(topicId) {
+    _mirrorTopicId = topicId;
+    _mirrorSelected = new Set();
+    // populate competitor dropdown
+    const sel = document.getElementById('mirror-comp-select');
+    sel.innerHTML = '<option value="">— choose competitor</option>' +
+      competitors.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    sel.value = '';
+    document.getElementById('mirror-pick-grid').innerHTML = '';
+    document.getElementById('mirror-pick-count').textContent = '';
+    document.getElementById('mirror-confirm-btn').disabled = true;
+    document.getElementById('mirror-overlay').classList.add('open');
+  }
+
+  function closeMirrorPicker() {
+    document.getElementById('mirror-overlay').classList.remove('open');
+    _mirrorTopicId = null;
+    _mirrorSelected = new Set();
+  }
+
+  function loadMirrorGrid() {
+    const cid = document.getElementById('mirror-comp-select').value;
+    const grid = document.getElementById('mirror-pick-grid');
+    if (!cid) { grid.innerHTML = ''; return; }
+
+    const compImgs = getImages(cid);
+    const topicImgs = getImages('topic-' + _mirrorTopicId);
+    // already mirrored srcImgIds from this competitor
+    const alreadyMirrored = new Set(
+      topicImgs.filter(i => i.mirrored && i.srcKey === cid).map(i => i.srcImgId)
+    );
+
+    if (!compImgs.length) {
+      grid.innerHTML = '<p style="color:var(--muted);font-size:13px">This competitor has no images yet.</p>';
+      return;
+    }
+
+    grid.innerHTML = compImgs.map(img => {
+      const already = alreadyMirrored.has(img.id);
+      const selected = _mirrorSelected.has(img.id);
+      return `<div class="mirror-pick-item${selected ? ' selected' : ''}${already ? ' already' : ''}"
+        data-img-id="${img.id}"
+        onclick="toggleMirrorSelect('${img.id}')"
+        title="${already ? 'Already pulled' : (img.name || 'Untitled')}">
+        <img src="${img.src}" alt="${img.name || ''}" />
+        <div class="mirror-pick-name">${escHtml(img.name || 'Untitled')}</div>
+        ${already ? '<div class="mirror-badge">already pulled</div>' : ''}
+      </div>`;
+    }).join('');
+  }
+
+  function toggleMirrorSelect(imgId) {
+    if (_mirrorSelected.has(imgId)) _mirrorSelected.delete(imgId);
+    else _mirrorSelected.add(imgId);
+    // update UI
+    document.querySelectorAll('.mirror-pick-item').forEach(el => {
+      el.classList.toggle('selected', _mirrorSelected.has(el.dataset.imgId));
+    });
+    const count = _mirrorSelected.size;
+    document.getElementById('mirror-pick-count').textContent = count ? `${count} selected` : '';
+    document.getElementById('mirror-confirm-btn').disabled = count === 0;
+  }
+
+  function confirmMirrorPull() {
+    const cid = document.getElementById('mirror-comp-select').value;
+    if (!cid || !_mirrorTopicId || !_mirrorSelected.size) return;
+    const topicKey = 'topic-' + _mirrorTopicId;
+    const topicImgs = getImages(topicKey);
+    const now = Date.now();
+    const comp = competitors.find(x => x.id === cid);
+
+    _mirrorSelected.forEach(srcImgId => {
+      const srcImg = getImages(cid).find(i => i.id === srcImgId);
+      if (!srcImg) return;
+      // skip if already mirrored
+      if (topicImgs.some(i => i.mirrored && i.srcKey === cid && i.srcImgId === srcImgId)) return;
+      topicImgs.push({
+        id: 'mir-' + now + '-' + srcImgId,
+        mirrored: true,
+        srcKey: cid,
+        srcImgId,
+        competitorIds: [cid],
+        name: srcImg.name || '',
+        note: '',
+        tags: [...(srcImg.tags || [])],
+        ts: now
+      });
+    });
+
+    saveImages(topicKey, topicImgs);
+    // re-render the topic gallery grid
+    const grid = document.getElementById('topic-gallery-grid-' + _mirrorTopicId);
+    if (grid) grid.innerHTML = topicImgs.map(img => galleryItemHTML(img, topicKey)).join('');
+    // update count in header
+    const header = grid && grid.closest('.gallery-section') && grid.closest('.gallery-section').querySelector('h3');
+    if (header) header.textContent = `Screenshots & Images (${topicImgs.length})`;
+
+    closeMirrorPicker();
+  }
+
+  // ─── Bulk Selection & Tagging ───────────────────────────
+  let _bulkKey = null;
+  let _bulkIds = new Set();
+
+  function toggleBulkSelect(e, imgId, storageKey) {
+    e.stopPropagation();
+    // if switching to a different gallery, clear old selection first
+    if (_bulkKey && _bulkKey !== storageKey) clearBulkSel();
+    _bulkKey = storageKey;
+    const el = document.querySelector(`[data-img-id="${imgId}"]`);
+    if (_bulkIds.has(imgId)) {
+      _bulkIds.delete(imgId);
+      el?.classList.remove('bulk-sel');
+    } else {
+      _bulkIds.add(imgId);
+      el?.classList.add('bulk-sel');
+    }
+    updateBulkBar(storageKey);
+  }
+
+  function _getGridEl(storageKey) {
+    if (storageKey.startsWith('topic-')) {
+      return document.getElementById('topic-gallery-grid-' + storageKey.replace('topic-', ''));
+    }
+    return document.getElementById('cimg-grid-' + storageKey);
+  }
+
+  function updateBulkBar(storageKey) {
+    const grid = _getGridEl(storageKey);
+    if (!grid) return;
+    const section = grid.closest('.gallery-section');
+    if (!section) return;
+    let bar = section.querySelector('.bulk-bar');
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.className = 'bulk-bar';
+      grid.before(bar);
+    }
+    if (_bulkIds.size === 0) {
+      bar.classList.remove('visible');
+      bar.innerHTML = '';
+      _bulkKey = null;
+      return;
+    }
+    const n = _bulkIds.size;
+    const sk = storageKey;
+    const compOptions = competitors.map(c =>
+      `<option value="${c.id}">${c.name}</option>`
+    ).join('');
+    const uid = sk.replace(/[^a-z0-9]/g, '');
+    bar.classList.add('visible');
+    bar.innerHTML = `
+      <strong>${n} selected</strong>
+      <span class="bulk-sep">|</span>
+      <input id="bulk-tag-${uid}" placeholder="tag (comma for multiple)…" style="width:180px"
+        list="cr-tag-ac" autocomplete="off" onfocus="refreshTagAc()"
+        onkeydown="if(event.key==='Enter'||event.key===','){event.preventDefault();var v=this.value.trim();if(v){bulkApplyTag('${sk}',v);this.value=''}}" />
+      <button class="bulk-btn" onclick="var i=document.getElementById('bulk-tag-${uid}');bulkApplyTag('${sk}',i.value.trim());i.value=''">Add tag</button>
+      <span class="bulk-sep">|</span>
+      <select onchange="if(this.value){bulkApplyCompetitor('${sk}',this.value);this.value=''}">
+        <option value="">set competitor…</option>
+        ${compOptions}
+      </select>
+      <span class="bulk-sep" style="margin-left:auto"></span>
+      <button class="bulk-btn danger" onclick="bulkDelete('${sk}')">Delete ${n}</button>
+      <button class="bulk-btn" onclick="clearBulkSel()">✕ Clear</button>
+    `;
+  }
+
+  function clearBulkSel() {
+    _bulkIds.forEach(id => {
+      document.querySelector(`[data-img-id="${id}"]`)?.classList.remove('bulk-sel');
+    });
+    const key = _bulkKey;
+    _bulkIds.clear();
+    _bulkKey = null;
+    if (key) {
+      const grid = _getGridEl(key);
+      grid?.closest('.gallery-section')?.querySelector('.bulk-bar')?.classList.remove('visible');
+    }
+  }
+
+  function bulkApplyTag(storageKey, rawVal) {
+    // support comma-separated multiple tags
+    const newTags = (rawVal || '').split(/,+/).map(t => t.trim().toLowerCase()).filter(Boolean);
+    if (!newTags.length || !_bulkIds.size) return;
+    const imgs = getImages(storageKey);
+    imgs.forEach(img => {
+      if (!_bulkIds.has(img.id)) return;
+      if (!img.tags) img.tags = [];
+      newTags.forEach(tag => { if (!img.tags.includes(tag)) img.tags.push(tag); });
+    });
+    saveImages(storageKey, imgs);
+    // re-render each selected card in-place and restore bulk-sel
+    const toRestore = new Set(_bulkIds);
+    toRestore.forEach(imgId => {
+      const img = imgs.find(i => i.id === imgId);
+      const el = document.querySelector(`[data-img-id="${imgId}"]`);
+      if (el && img) el.outerHTML = galleryItemHTML(img, storageKey);
+    });
+    toRestore.forEach(imgId => {
+      document.querySelector(`[data-img-id="${imgId}"]`)?.classList.add('bulk-sel');
+    });
+    updateBulkBar(storageKey);
+  }
+
+  function bulkApplyCompetitor(storageKey, competitorId) {
+    if (!competitorId || !_bulkIds.size) return;
+    const imgs = getImages(storageKey);
+    imgs.forEach(img => {
+      if (!_bulkIds.has(img.id)) return;
+      img.competitorIds = [competitorId];
+    });
+    saveImages(storageKey, imgs);
+    // re-render each card and restore bulk-sel class
+    const toRestore = new Set(_bulkIds);
+    _bulkIds.forEach(imgId => {
+      const el = document.querySelector(`[data-img-id="${imgId}"]`);
+      const img = imgs.find(i => i.id === imgId);
+      if (el && img) el.outerHTML = galleryItemHTML(img, storageKey);
+    });
+    // restore bulk-sel highlights
+    toRestore.forEach(imgId => {
+      document.querySelector(`[data-img-id="${imgId}"]`)?.classList.add('bulk-sel');
+    });
+    updateBulkBar(storageKey);
+  }
+
+  function bulkDelete(storageKey) {
+    if (!_bulkIds.size) return;
+    const n = _bulkIds.size;
+    if (!confirm(`Delete ${n} image${n > 1 ? 's' : ''}?`)) return;
+    let imgs = getImages(storageKey);
+    imgs = imgs.filter(i => !_bulkIds.has(i.id));
+    saveImages(storageKey, imgs);
+    _bulkIds.forEach(imgId => {
+      document.querySelector(`[data-img-id="${imgId}"]`)?.remove();
+    });
+    _bulkIds.clear();
+    _bulkKey = null;
+    updateBulkBar(storageKey);
+    // update image count in gallery header
+    const grid = _getGridEl(storageKey);
+    const header = grid?.closest('.gallery-section')?.querySelector('h3');
+    if (header) header.textContent = `Screenshots & Images (${imgs.length})`;
+  }
+
+  // ─── Send to Competitor ──────────────────────────────────
+  function sendImageToCompetitor(imgId, storageKey, competitorId, selectEl) {
+    if (!competitorId) return;
+    const imgs = getImages(storageKey);
+    const img = imgs.find(i => i.id === imgId);
+    if (!img) return;
+    const src = img.mirrored
+      ? (getImages(img.srcKey).find(i => i.id === img.srcImgId) || {}).src
+      : img.src;
+    if (!src) return;
+    const compImgs = getImages(competitorId);
+    compImgs.push({
+      id: 'sent-' + Date.now(),
+      src,
+      name: img.name || '',
+      note: img.note || '',
+      tags: [...(img.tags || [])],
+      competitorIds: [],
+      ts: Date.now()
+    });
+    saveImages(competitorId, compImgs);
+    if (selectEl) selectEl.value = '';
+    // brief visual feedback on the card
+    const item = document.querySelector(`[data-img-id="${imgId}"]`);
+    if (item) {
+      const fb = document.createElement('div');
+      fb.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(55,53,47,0.55);border-radius:6px;font-size:13px;font-weight:600;color:#fff;pointer-events:none;z-index:5';
+      fb.textContent = '✓ sent';
+      const old = item.style.position;
+      item.style.position = 'relative';
+      item.appendChild(fb);
+      setTimeout(() => { fb.remove(); item.style.position = old; }, 1600);
+    }
+  }
+
+  // ─── Info Boxes ──────────────────────────────────────────
+  function getInfoBoxes(cid) {
+    return JSON.parse(localStorage.getItem('cr-infoboxes-' + cid) || '[]');
+  }
+  function saveInfoBoxes(cid, boxes) {
+    localStorage.setItem('cr-infoboxes-' + cid, JSON.stringify(boxes));
+  }
+
+  function _infoBoxImgsHTML(cid, box) {
+    return (box.images || []).map(img => `
+      <div class="info-box-img-wrap">
+        <img src="${img.src}" alt="${escHtml(img.name || '')}"
+          onclick="openInfoBoxImg(this.src,'${escHtml(img.name || '')}')" />
+        <button class="info-box-img-del"
+          onclick="deleteInfoBoxImage('${cid}','${box.id}','${img.id}')">✕</button>
+      </div>`).join('');
+  }
+
+  function infoBoxHTML(cid, box) {
+    return `
+      <div class="info-box" id="ibox-${box.id}">
+        <button class="info-box-del" onclick="deleteInfoBox('${cid}','${box.id}')" title="Delete section">✕</button>
+        <div class="info-box-header">
+          <span class="info-box-title" contenteditable="true" spellcheck="false" data-placeholder="Section title..."
+            onblur="updateInfoBox('${cid}','${box.id}','title',this.innerText.trim())"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+          >${escHtml(box.title || '')}</span>
+        </div>
+        <div class="info-box-desc" contenteditable="true" spellcheck="false" data-placeholder="Add a description..."
+          onblur="updateInfoBox('${cid}','${box.id}','desc',this.innerText.trim())"
+        >${escHtml(box.desc || '')}</div>
+        <div class="info-box-images" id="ibox-imgs-${box.id}">${_infoBoxImgsHTML(cid, box)}</div>
+        <label class="info-box-upload">
+          + Add image
+          <input type="file" accept="image/*" multiple style="display:none"
+            onchange="addInfoBoxImage('${cid}','${box.id}',this.files);this.value=''" />
+        </label>
+      </div>`;
+  }
+
+  function infoBoxesHTML(cid) {
+    const boxes = getInfoBoxes(cid);
+    if (!boxes.length) return `<div style="color:var(--muted);font-size:13px;padding:8px 0">No sections yet.</div>`;
+    return boxes.map(box => infoBoxHTML(cid, box)).join('');
+  }
+
+  function addInfoBox(cid) {
+    const boxes = getInfoBoxes(cid);
+    const box = { id: 'ibox-' + Date.now(), title: '', desc: '', images: [], ts: Date.now() };
+    boxes.push(box);
+    saveInfoBoxes(cid, boxes);
+    const el = document.getElementById('info-boxes-' + cid);
+    if (el) {
+      // append just the new box instead of re-rendering all (preserves contenteditable state)
+      const div = document.createElement('div');
+      div.innerHTML = infoBoxHTML(cid, box);
+      el.appendChild(div.firstElementChild);
+      // focus the title
+      const title = document.getElementById('ibox-' + box.id)?.querySelector('.info-box-title');
+      if (title) { title.focus(); placeCaretAtEnd(title); }
+    }
+  }
+
+  function deleteInfoBox(cid, boxId) {
+    let boxes = getInfoBoxes(cid);
+    boxes = boxes.filter(b => b.id !== boxId);
+    saveInfoBoxes(cid, boxes);
+    const el = document.getElementById('ibox-' + boxId);
+    if (el) el.remove();
+    const container = document.getElementById('info-boxes-' + cid);
+    if (container && !container.querySelector('.info-box')) {
+      container.innerHTML = `<div style="color:var(--muted);font-size:13px;padding:8px 0">No sections yet.</div>`;
+    }
+  }
+
+  function updateInfoBox(cid, boxId, field, val) {
+    const boxes = getInfoBoxes(cid);
+    const box = boxes.find(b => b.id === boxId);
+    if (!box) return;
+    box[field] = val;
+    saveInfoBoxes(cid, boxes);
+  }
+
+  function addInfoBoxImage(cid, boxId, files) {
+    const boxes = getInfoBoxes(cid);
+    const box = boxes.find(b => b.id === boxId);
+    if (!box) return;
+    const arr = Array.from(files);
+    let done = 0;
+    arr.forEach(f => {
+      const r = new FileReader();
+      r.onload = e => {
+        box.images = box.images || [];
+        box.images.push({ id: 'ibi-' + Date.now() + '-' + Math.random().toString(36).slice(2), src: e.target.result, name: f.name, ts: Date.now() });
+        done++;
+        if (done === arr.length) {
+          saveInfoBoxes(cid, boxes);
+          const el = document.getElementById('ibox-imgs-' + boxId);
+          if (el) el.innerHTML = _infoBoxImgsHTML(cid, box);
+        }
+      };
+      r.readAsDataURL(f);
+    });
+  }
+
+  function deleteInfoBoxImage(cid, boxId, imgId) {
+    const boxes = getInfoBoxes(cid);
+    const box = boxes.find(b => b.id === boxId);
+    if (!box) return;
+    box.images = (box.images || []).filter(i => i.id !== imgId);
+    saveInfoBoxes(cid, boxes);
+    const el = document.getElementById('ibox-imgs-' + boxId);
+    if (el) el.innerHTML = _infoBoxImgsHTML(cid, box);
+  }
+
+  function openInfoBoxImg(src, name) {
+    _lbImages = [{ src, name, tags: [] }]; _lbIdx = 0;
+    document.getElementById('lightbox-img').src = src;
+    document.getElementById('lightbox-caption').textContent = name || '';
+    document.getElementById('lightbox-tags').innerHTML = '';
+    document.getElementById('lb-counter').textContent = '';
+    document.getElementById('lb-prev').style.display = 'none';
+    document.getElementById('lb-next').style.display = 'none';
+    document.getElementById('lightbox').classList.add('open');
+  }
+
+  function placeCaretAtEnd(el) {
+    const range = document.createRange();
+    const sel = window.getSelection();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+
+  // ─── Theme ──────────────────────────────────────────────
+  function applyTheme(dark) {
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    const track = document.getElementById('theme-toggle-track');
+    const label = document.getElementById('theme-toggle-label');
+    if (track) track.classList.toggle('on', dark);
+    if (label) label.textContent = dark ? 'Light mode' : 'Dark mode';
+  }
+
+  function toggleTheme() {
+    const dark = document.documentElement.getAttribute('data-theme') !== 'dark';
+    localStorage.setItem('cr-theme', dark ? 'dark' : 'light');
+    applyTheme(dark);
+  }
+
+  // ─── Keyboard shortcuts ──────────────────────────────────
+  document.addEventListener('keydown', e => {
+    const lb = document.getElementById('lightbox');
+    if (lb && lb.classList.contains('open')) {
+      if (e.key === 'Escape') closeLightbox();
+      else if (e.key === 'ArrowRight') lbNav(1);
+      else if (e.key === 'ArrowLeft') lbNav(-1);
+    }
+  });
+
+  // ─── Init ───────────────────────────────────────────────
+  applyTheme(localStorage.getItem('cr-theme') === 'dark');
+  competitors = JSON.parse(localStorage.getItem('cr-competitors') || '[]');
+  renderTopicsNav();
+  restoreCollapsed();
+  renderCompetitors();
+</script>
+</body>
+</html>
