@@ -176,6 +176,9 @@
       padding: 16px;
       transition: box-shadow 0.15s, background 0.1s;
       cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
     }
 
     .card:hover { background: var(--surface2); box-shadow: rgba(15,15,15,0.04) 0 0 0 1px, rgba(15,15,15,0.06) 0 3px 8px; }
@@ -204,7 +207,8 @@
     .card-meta {
       display: flex;
       justify-content: space-between;
-      margin-top: 12px;
+      margin-top: auto;
+      padding-top: 12px !important;
       padding-top: 12px;
       border-top: 1px solid var(--border);
       font-size: 12px;
@@ -769,7 +773,14 @@
     .lightbox img { max-width: 88vw; max-height: 76vh; border-radius: 4px; box-shadow: 0 24px 80px rgba(0,0,0,0.6); }
     .lightbox-caption { margin-top: 12px; color: rgba(255,255,255,0.7); font-size: 13px; text-align: center; max-width: 80vw; }
     .lightbox-tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
-    .lightbox-tag { background: rgba(144,101,176,0.3); color: rgba(255,255,255,0.85); border-radius: 10px; padding: 2px 8px; font-size: 11px; }
+    .lightbox-tag-wrap { position: relative; display: inline-flex; align-items: center; }
+    .lightbox-tag { background: rgba(144,101,176,0.3); color: rgba(255,255,255,0.85); border-radius: 10px; padding: 2px 8px; font-size: 11px; outline: none; cursor: text; }
+    .lightbox-tag:focus { background: rgba(144,101,176,0.55); }
+    .lb-tag-del { display: none; position: absolute; top: -5px; right: -5px; background: rgba(224,62,62,0.85); border: none; border-radius: 50%; width: 14px; height: 14px; color: #fff; font-size: 9px; cursor: pointer; align-items: center; justify-content: center; padding: 0; line-height: 1; }
+    .lightbox-tag-wrap:hover .lb-tag-del { display: flex; }
+    .lb-tag-add { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); border: 1px dashed rgba(255,255,255,0.25); border-radius: 10px; padding: 2px 8px; font-size: 11px; cursor: pointer; }
+    .lb-tag-add:hover { background: rgba(255,255,255,0.18); color: #fff; }
+    .lb-tag-input { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: #fff; font-size: 11px; padding: 2px 8px; outline: none; font-family: inherit; width: 90px; }
     .lightbox-close { position: absolute; top: 20px; right: 24px; background: none; border: none; color: rgba(255,255,255,0.7); font-size: 26px; cursor: pointer; }
     .lightbox-close:hover { color: #fff; }
     .lightbox-nav {
@@ -1314,6 +1325,12 @@
       grid.innerHTML = `<div class="empty"><div class="icon">🏢</div><p>No competitors yet.<br>Click "+ Add Competitor" to begin.</p></div>`;
     } else {
       grid.innerHTML = list.map(cardHTML).join('');
+      requestAnimationFrame(() => {
+        const cards = grid.querySelectorAll('.card');
+        cards.forEach(c => c.style.height = '');
+        const max = Math.max(...[...cards].map(c => c.offsetHeight));
+        if (max > 0) cards.forEach(c => c.style.height = max + 'px');
+      });
     }
   }
 
@@ -1357,9 +1374,9 @@
           ${badge}
         </div>
         <div class="tags">${tags}</div>
-${(c.features || []).length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px">${(c.features).slice(0,4).map(f => `<span style="font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 7px;color:var(--muted)">${escHtml(f)}</span>`).join('')}${c.features.length > 4 ? `<span style="font-size:11px;color:var(--muted);padding:2px 4px">+${c.features.length - 4}</span>` : ''}</div>` : ''}
+${(c.features || []).length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:8px">${(c.features).map(f => `<span style="font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 7px;color:var(--muted)">${escHtml(f)}</span>`).join('')}</div>` : ''}
         <div class="card-meta">
-          <span>${c.pricing || '—'}</span>
+          ${c.apps ? `<span style="color:var(--muted)">${escHtml(c.apps)} apps</span>` : ''}
           <span class="ts">edited ${fmtDate(c.updatedAt || c.createdAt)}</span>
         </div>
       </div>`;
@@ -2532,7 +2549,16 @@ ${(c.features || []).length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;m
     document.getElementById('lightbox-img').src = src || '';
     document.getElementById('lightbox-caption').textContent = (img.name || '') + (img.note ? ' — ' + img.note : '') + (img.ts ? '  ·  ' + fmtDate(img.ts) : '');
     const tagsEl = document.getElementById('lightbox-tags');
-    tagsEl.innerHTML = (img.tags || []).map(t => `<span class="lightbox-tag">#${escHtml(t)}</span>`).join('');
+    tagsEl.innerHTML = (img.tags || []).map(t => `
+      <span class="lightbox-tag-wrap">
+        <span class="lightbox-tag" contenteditable="true" spellcheck="false"
+          onclick="event.stopPropagation()"
+          onblur="lbRenameTag('${escHtml(t).replace(/'/g,"\\'")}',this.textContent.trim())"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+        >#${escHtml(t)}</span>
+        <button class="lb-tag-del" onclick="event.stopPropagation();lbRemoveTag('${escHtml(t).replace(/'/g,"\\'")}')">✕</button>
+      </span>`).join('') +
+      `<button class="lb-tag-add" onclick="event.stopPropagation();lbShowTagInput(this)">+ tag</button>`;
     const counter = document.getElementById('lb-counter');
     counter.textContent = _lbImages.length > 1 ? `${_lbIdx + 1} / ${_lbImages.length}` : '';
     document.getElementById('lb-prev').style.display = _lbImages.length > 1 ? '' : 'none';
@@ -2551,6 +2577,57 @@ ${(c.features || []).length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;m
   function closeLightbox() {
     document.getElementById('lightbox').classList.remove('open');
     _lbImages = []; _lbIdx = 0;
+  }
+
+  function _lbSaveTags(tags) {
+    const img = _lbImages[_lbIdx];
+    if (!img || !img._cid) return;
+    img.tags = tags;
+    const imgs = getImages(img._cid);
+    const stored = imgs.find(i => i.id === img.id);
+    if (stored) { stored.tags = tags; saveImages(img._cid, imgs); }
+    // update pill in gallery if visible
+    const tagList = document.getElementById('img-taglist-' + img.id);
+    if (tagList) {
+      const input = tagList.querySelector('.tag-input');
+      const inputHTML = input ? input.outerHTML : '';
+      tagList.innerHTML = tags.map(tag => `<span class="img-tag">#${escHtml(tag)}<button onclick="removeImageTag('${img.id}','${img._cid}','${tag.replace(/'/g,"\\'")}')">✕</button></span>`).join('') + inputHTML;
+    }
+  }
+
+  function lbRemoveTag(tag) {
+    const img = _lbImages[_lbIdx];
+    if (!img) return;
+    _lbSaveTags((img.tags || []).filter(t => t !== tag));
+    _showLightboxFrame();
+  }
+
+  function lbRenameTag(oldTag, newTag) {
+    newTag = newTag.replace(/^#/, '').toLowerCase().trim();
+    if (!newTag || newTag === oldTag) { _showLightboxFrame(); return; }
+    const img = _lbImages[_lbIdx];
+    if (!img) return;
+    _lbSaveTags((img.tags || []).map(t => t === oldTag ? newTag : t));
+    _showLightboxFrame();
+  }
+
+  function lbShowTagInput(btn) {
+    btn.outerHTML = `<input class="lb-tag-input" placeholder="add tag…" list="cr-tag-ac" autocomplete="off"
+      onfocus="refreshTagAc()" onclick="event.stopPropagation()"
+      onkeydown="if(event.key==='Enter'){event.preventDefault();lbAddTag(this)}"
+      onblur="lbAddTag(this)" />`;
+    setTimeout(() => document.querySelector('.lb-tag-input')?.focus(), 0);
+  }
+
+  function lbAddTag(input) {
+    const tag = (input.value || '').replace(/^#/, '').trim().toLowerCase();
+    if (!tag) { _showLightboxFrame(); return; }
+    const img = _lbImages[_lbIdx];
+    if (!img) return;
+    const tags = [...(img.tags || [])];
+    if (!tags.includes(tag)) tags.push(tag);
+    _lbSaveTags(tags);
+    _showLightboxFrame();
   }
 
   // ─── Add Form ───────────────────────────────────────────
@@ -3542,7 +3619,6 @@ GAPS TO CLOSE:
   }
 
   function bulkApplyTag(storageKey, rawVal) {
-    // support comma-separated multiple tags
     const newTags = (rawVal || '').split(/,+/).map(t => t.trim().toLowerCase()).filter(Boolean);
     if (!newTags.length || !_bulkIds.size) return;
     const imgs = getImages(storageKey);
@@ -3552,15 +3628,17 @@ GAPS TO CLOSE:
       newTags.forEach(tag => { if (!img.tags.includes(tag)) img.tags.push(tag); });
     });
     saveImages(storageKey, imgs);
-    // re-render each selected card in-place and restore bulk-sel
-    const toRestore = new Set(_bulkIds);
-    toRestore.forEach(imgId => {
+    // update tag pills in-place (no full re-render)
+    _bulkIds.forEach(imgId => {
       const img = imgs.find(i => i.id === imgId);
-      const el = document.querySelector(`[data-img-id="${imgId}"]`);
-      if (el && img) el.outerHTML = galleryItemHTML(img, storageKey);
-    });
-    toRestore.forEach(imgId => {
-      document.querySelector(`[data-img-id="${imgId}"]`)?.classList.add('bulk-sel');
+      if (!img) return;
+      const tagList = document.getElementById('img-taglist-' + imgId);
+      if (!tagList) return;
+      const input = tagList.querySelector('.tag-input');
+      const inputHTML = input ? input.outerHTML : `<input class="tag-input gi-tag-input" placeholder="+ tag" id="tag-input-${imgId}" list="cr-tag-ac" autocomplete="off" onfocus="refreshTagAc()" onkeydown="if(event.key==='Enter'||event.key===','){event.preventDefault();addImageTag('${imgId}','${storageKey}',this)}" onblur="addImageTag('${imgId}','${storageKey}',this)" />`;
+      tagList.innerHTML = (img.tags || []).map(tag =>
+        `<span class="img-tag">#${escHtml(tag)}<button onclick="removeImageTag('${imgId}','${storageKey}','${tag.replace(/'/g,"\\'")}')">✕</button></span>`
+      ).join('') + inputHTML;
     });
     updateBulkBar(storageKey);
   }
