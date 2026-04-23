@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="build-ts" content="2026-04-23T12:58:40Z" />
+  <meta name="build-ts" content="2026-04-23T13:01:16Z" />
   <title>App Market Competitor Research</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -349,6 +349,36 @@
       display: none; align-items: center; justify-content: center; padding: 0;
     }
     .missing-item:hover .missing-item-del { display: flex; }
+
+    /* READ-ONLY MODE */
+    [data-readonly] [contenteditable] { pointer-events: none; cursor: default; }
+    [data-readonly] .btn-primary,
+    [data-readonly] .gallery-item-del,
+    [data-readonly] .gallery-item-check,
+    [data-readonly] .bulk-bar,
+    [data-readonly] .info-box-del,
+    [data-readonly] .opp-delete,
+    [data-readonly] .missing-item-del,
+    [data-readonly] .drag-handle,
+    [data-readonly] .opp-drag-handle,
+    [data-readonly] .mx-add-row,
+    [data-readonly] .mx-row-del,
+    [data-readonly] .section-header .btn,
+    [data-readonly] [onclick*="openForm"],
+    [data-readonly] [onclick*="addOpportunity"],
+    [data-readonly] [onclick*="addMissingItem"],
+    [data-readonly] [onclick*="addInfoBox"],
+    [data-readonly] [onclick*="addFeature"],
+    [data-readonly] [onclick*="deleteCompetitor"],
+    [data-readonly] [onclick*="importData"],
+    [data-readonly] #import-input,
+    [data-readonly] input[placeholder="+ add feature"],
+    [data-readonly] input[placeholder="+ tag"],
+    [data-readonly] .gi-tag-input,
+    [data-readonly] .tag-input { display: none !important; }
+    [data-readonly] .gi-name,
+    [data-readonly] .gi-note { pointer-events: none; }
+    [data-readonly] .card { cursor: pointer; }
 
     /* EMPTY STATE */
     .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
@@ -3885,6 +3915,9 @@ GAPS TO CLOSE:
   });
 
   // ─── Init ───────────────────────────────────────────────
+  const IS_READONLY = !['localhost', '127.0.0.1'].includes(location.hostname);
+  if (IS_READONLY) document.body.setAttribute('data-readonly', '');
+
   applyTheme(localStorage.getItem('cr-theme') === 'dark');
   competitors = JSON.parse(localStorage.getItem('cr-competitors') || '[]');
   renderTopicsNav();
