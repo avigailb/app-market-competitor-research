@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="build-ts" content="2026-04-26T09:55:13Z" />
+  <meta name="build-ts" content="2026-04-26T10:13:58Z" />
   <title>App Market Competitor Research</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -3047,23 +3047,35 @@ ${(c.features || []).length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;m
     a.click();
   }
 
-  function publishStateJson() {
+  function _buildStateData() {
     const images = {};
     competitors.forEach(c => {
       const imgs = getImages(c.id);
       if (imgs.length) images[c.id] = imgs;
     });
-    const data = { competitors, images, notes: { general: localStorage.getItem('cr-note-general') || '' } };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'state.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    setTimeout(() => alert('state.json downloaded.\n\nTo update the public site:\n1. Move it to data/state.json in the repo\n2. Git commit and push'), 300);
+    return { competitors, images, notes: { general: localStorage.getItem('cr-note-general') || '' } };
+  }
+
+  function publishStateJson() {
+    const data = _buildStateData();
+    const json = JSON.stringify(data, null, 2);
+    fetch('/publish', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: json })
+      .then(r => r.json())
+      .then(result => {
+        if (result.ok) {
+          alert('Published! The public site will update in ~30 seconds.');
+        } else {
+          alert('Error: ' + result.msg);
+        }
+      })
+      .catch(() => alert('Could not reach local server.\nMake sure you started it with: node server.js'));
+  }
+
+  function autoBackup() {
+    if (IS_READONLY || competitors.length === 0) return;
+    const json = JSON.stringify(_buildStateData(), null, 2);
+    fetch('/backup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: json })
+      .catch(() => {}); // silently ignore if server not running
   }
 
   function importData(input) {
@@ -3986,6 +3998,9 @@ GAPS TO CLOSE:
     }).catch(() => {}).finally(() => _renderAll());
   } else {
     _renderAll();
+    // Auto-backup every 5 minutes + on page close
+    setInterval(autoBackup, 5 * 60 * 1000);
+    window.addEventListener('beforeunload', autoBackup);
   }
   // Check if GitHub Pages is behind latest commit
   (async () => {
