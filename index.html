@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="build-ts" content="2026-04-26T09:30:14Z" />
+  <meta name="build-ts" content="2026-04-26T09:55:13Z" />
   <title>App Market Competitor Research</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -3055,10 +3055,14 @@ ${(c.features || []).length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;m
     });
     const data = { competitors, images, notes: { general: localStorage.getItem('cr-note-general') || '' } };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
+    a.href = url;
     a.download = 'state.json';
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
     setTimeout(() => alert('state.json downloaded.\n\nTo update the public site:\n1. Move it to data/state.json in the repo\n2. Git commit and push'), 300);
   }
 
