@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="build-ts" content="2026-04-26T09:18:46Z" />
+  <meta name="build-ts" content="2026-04-26T09:30:14Z" />
   <title>App Market Competitor Research</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -371,6 +371,7 @@
     [data-readonly] [onclick*="addFeature"],
     [data-readonly] [onclick*="deleteCompetitor"],
     [data-readonly] [onclick*="importData"],
+    [data-readonly] [onclick*="publishStateJson"],
     [data-readonly] #import-input,
     [data-readonly] input[placeholder="+ add feature"],
     [data-readonly] input[placeholder="+ tag"],
@@ -1020,6 +1021,7 @@
     </div>
     <div class="nav-group" id="sec-data">
       <a href="#" onclick="exportData()">Export JSON</a>
+      <a href="#" onclick="publishStateJson()" title="Download state.json to update the public site">Publish to GitHub Pages</a>
       <a href="#" onclick="document.getElementById('import-input').click()">Import JSON</a>
       <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(this)" />
     </div>
@@ -3045,6 +3047,21 @@ ${(c.features || []).length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;m
     a.click();
   }
 
+  function publishStateJson() {
+    const images = {};
+    competitors.forEach(c => {
+      const imgs = getImages(c.id);
+      if (imgs.length) images[c.id] = imgs;
+    });
+    const data = { competitors, images, notes: { general: localStorage.getItem('cr-note-general') || '' } };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'state.json';
+    a.click();
+    setTimeout(() => alert('state.json downloaded.\n\nTo update the public site:\n1. Move it to data/state.json in the repo\n2. Git commit and push'), 300);
+  }
+
   function importData(input) {
     const file = input.files[0];
     if (!file) return;
@@ -3053,9 +3070,21 @@ ${(c.features || []).length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;m
       try {
         const data = JSON.parse(e.target.result);
         if (data.competitors) {
-          const existingIds = new Set(competitors.map(c => c.id));
-          const newOnes = data.competitors.filter(c => !existingIds.has(c.id));
-          competitors = [...competitors, ...newOnes];
+          const existingMap = new Map(competitors.map(c => [c.id, c]));
+          const toUpdate = data.competitors.filter(c => existingMap.has(c.id));
+          const toAdd = data.competitors.filter(c => !existingMap.has(c.id));
+          const hasImages = data.images && Object.keys(data.images).length > 0;
+          const msg = [
+            toUpdate.length ? `Update ${toUpdate.length} existing competitor${toUpdate.length !== 1 ? 's' : ''}` : '',
+            toAdd.length ? `Add ${toAdd.length} new competitor${toAdd.length !== 1 ? 's' : ''}` : '',
+            hasImages ? `Import images` : ''
+          ].filter(Boolean).join(', ');
+          if (!confirm(`Import will: ${msg}.\nContinue?`)) {
+            input.value = '';
+            return;
+          }
+          toUpdate.forEach(c => Object.assign(existingMap.get(c.id), c));
+          competitors = [...competitors, ...toAdd];
           save();
           renderCompetitors();
         }
@@ -3938,9 +3967,22 @@ GAPS TO CLOSE:
 
   applyTheme(localStorage.getItem('cr-theme') === 'dark');
   competitors = JSON.parse(localStorage.getItem('cr-competitors') || '[]');
-  renderTopicsNav();
-  restoreCollapsed();
-  renderCompetitors();
+
+  function _renderAll() { renderTopicsNav(); restoreCollapsed(); renderCompetitors(); }
+
+  if (IS_READONLY) {
+    // Public site: always load canonical data from committed state file
+    fetch('./data/state.json').then(r => r.ok ? r.json() : null).then(data => {
+      if (data && data.competitors) {
+        competitors = data.competitors;
+        localStorage.setItem('cr-competitors', JSON.stringify(competitors));
+        if (data.images) Object.entries(data.images).forEach(([cid, imgs]) => saveImages(cid, imgs));
+        if (data.notes) Object.entries(data.notes).forEach(([k, v]) => localStorage.setItem('cr-note-' + k, v));
+      }
+    }).catch(() => {}).finally(() => _renderAll());
+  } else {
+    _renderAll();
+  }
   // Check if GitHub Pages is behind latest commit
   (async () => {
     try {
