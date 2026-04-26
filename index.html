@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="build-ts" content="2026-04-23T13:01:16Z" />
+  <meta name="build-ts" content="2026-04-26T09:18:46Z" />
   <title>App Market Competitor Research</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -3026,8 +3026,14 @@ ${(c.features || []).length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;m
 
   // ─── Export / Import ────────────────────────────────────
   function exportData() {
+    const images = {};
+    competitors.forEach(c => {
+      const imgs = getImages(c.id);
+      if (imgs.length) images[c.id] = imgs;
+    });
     const data = {
       competitors,
+      images,
       notes: {
         general: localStorage.getItem('cr-note-general') || ''
       }
@@ -3047,14 +3053,26 @@ ${(c.features || []).length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;m
       try {
         const data = JSON.parse(e.target.result);
         if (data.competitors) {
-          competitors = data.competitors;
+          const existingIds = new Set(competitors.map(c => c.id));
+          const newOnes = data.competitors.filter(c => !existingIds.has(c.id));
+          competitors = [...competitors, ...newOnes];
           save();
+          renderCompetitors();
+        }
+        if (data.images) {
+          Object.entries(data.images).forEach(([cid, imgs]) => {
+            const existing = getImages(cid);
+            const existingImgIds = new Set(existing.map(i => i.id));
+            const merged = [...existing, ...imgs.filter(i => !existingImgIds.has(i.id))];
+            saveImages(cid, merged);
+          });
         }
         if (data.notes) {
           Object.entries(data.notes).forEach(([k, v]) => localStorage.setItem('cr-note-' + k, v));
         }
-    
-        alert('Import successful — ' + (data.competitors || []).length + ' competitors loaded.');
+        const nc = (data.competitors || []).length;
+        const ni = Object.values(data.images || {}).reduce((s, a) => s + a.length, 0);
+        alert(`Import successful — ${nc} competitors, ${ni} images loaded.`);
       } catch {
         alert('Invalid JSON file.');
       }
